@@ -62,9 +62,31 @@ trello-web/
     │   └── App.jsx        # Root component
     └── package.json
     👨‍💻 Author
+
+🛠️ Tech Stack
+Frontend
+
+React 18, Vite
+
+Redux Toolkit, DnD Libraries (Drag and Drop)
+
+React Router DOM, Axios
+
+Backend
+
+Node.js, Express.js
+
+MongoDB, Mongoose (ODM)
+
+JWT, CORS
+
+DevOps
+
+Docker & Docker Compose
+
+Render (Backend) / Vercel (Frontend)
+
 Vinh
 Information Technology Student at Posts and Telecommunications Institute of Technology (PTIT)
 
 LinkedIn: [Hien Vinh Nguyen Van](https://www.linkedin.com/in/hien-vinh-nguyen-van-9607462a9/)
-
-
