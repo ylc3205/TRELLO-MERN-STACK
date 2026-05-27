@@ -7,13 +7,21 @@ import { useState } from 'react'
 import TextField from '@mui/material/TextField'
 import CloseIcon from '@mui/icons-material/Close'
 import { toast } from 'react-toastify'
+import { createNewColumnAPI } from '~/apis'
+import { generatePlaceholderCard } from '~/utils/formatters'
+import { cloneDeep } from 'lodash'
+import { useDispatch, useSelector } from 'react-redux'
+import { selectCurrentActiveBoard, updateCurrentActiveBoard } from '~/redux/activeBoard/activeBoardSlice'
 
-function ListColumns({ columns, createNewColumn, createNewCard }) {
-  const [openNewColumnForm, setopenNewColumnForm  ] = useState(false)
+function ListColumns({ columns }) {
+  const dispatch = useDispatch()
+  const board = useSelector(selectCurrentActiveBoard)
+
+  const [openNewColumnForm, setopenNewColumnForm] = useState(false)
   const toggleOpenNewColumnForm = () => setopenNewColumnForm(!openNewColumnForm)
 
   const [newColumnTitle, setNewColumnTitle] = useState('')
-  const addNewColumn = () => {
+  const addNewColumn = async () => {
     if (!newColumnTitle) {
       toast.error('Please enter column title!')
       return
@@ -23,8 +31,22 @@ function ListColumns({ columns, createNewColumn, createNewCard }) {
       title: newColumnTitle
     }
 
-    // Gọi lên props function createNewColumn nằm ở component cha cao nhất (board/_id.jsx)
-    createNewColumn(newColumnData)
+    // Gọi API tạo mới column và làm lại dữ liệu state board
+    const createdColumn = await createNewColumnAPI({
+      ...newColumnData,
+      boardId: board._id
+    })
+
+    // Khi tạo column mới thì sẽ chưa có card, cần xử lý vấn đề kéo thả vào 1 column rỗng
+    createdColumn.cards = [generatePlaceholderCard(createdColumn)]
+    createdColumn.cardOrderIds = [generatePlaceholderCard(createdColumn)._id]
+
+    // Upate state board
+    // FrontEnd tự làm đúng lại state data board
+    const newBoard = cloneDeep(board)
+    newBoard.columns.push(createdColumn)
+    newBoard.columnOrderIds.push(createdColumn._id)
+    dispatch(updateCurrentActiveBoard(newBoard))
 
     // Đóng trạng thái thêm column mới và clear input
     toggleOpenNewColumnForm()
@@ -42,7 +64,7 @@ function ListColumns({ columns, createNewColumn, createNewCard }) {
         overflowY: 'hidden',
         '&::-webkit-scrollbar-track':{ m: 2 }
       }}>
-        { columns?.map(column => <Column key={column._id} column={column} createNewCard={createNewCard} />)}
+        { columns?.map(column => <Column key={column._id} column={column} />)}
 
         {/* Add new column */}
         {!openNewColumnForm
@@ -99,6 +121,7 @@ function ListColumns({ columns, createNewColumn, createNewCard }) {
             />
             <Box sx ={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Button
+                className='interceptor-loading'
                 onClick={addNewColumn}
                 variant='contained' color='success' size='small'
                 sx ={{

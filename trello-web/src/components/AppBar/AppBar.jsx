@@ -11,8 +11,6 @@ import Starred from './Menus/Starred'
 import Templates from './Menus/Templates'
 import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
-import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone'
-import Badge from '@mui/material/Badge'
 import Tooltip from '@mui/material/Tooltip'
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
 import Profiles from './Menus/Profiles'
@@ -20,6 +18,9 @@ import LibraryAddIcon from '@mui/icons-material/LibraryAdd'
 import InputAdornment from '@mui/material/InputAdornment'
 import SearchIcon from '@mui/icons-material/Search'
 import CloseIcon from '@mui/icons-material/Close'
+import { Link } from 'react-router-dom'
+import Notifications from './Notifications/Notifications'
+import AutoCompleteSearchBoard from './SearchBoards/AutoCompleteSearchBoard'
 
 
 function AppBar() {
@@ -39,11 +40,18 @@ function AppBar() {
       '&::-webkit-scrollbar-track':{ m: 2 }
     }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap : 2 }}>
-        <AppsIcon sx={{ color: 'white' }} />
-        <Box sx={{ display: 'flex', alignItems: 'center', gap : 0.5 }}>
-          <SvgIcon component={TrelloIcon} fontSize='small' inheritViewBox sx={{ color: 'white' }} />
-          <Typography variant='span' sx={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'white' }}>Trello</Typography>
-        </Box>
+        <Link to="/boards">
+          <Tooltip title="Board List">
+            <AppsIcon sx={{ color: 'white', verticalAlign: 'middle' }} />
+          </Tooltip>
+        </Link>
+
+        <Link to="/">
+          <Box sx={{ display: 'flex', alignItems: 'center', gap : 0.5 }}>
+            <SvgIcon component={TrelloIcon} fontSize='small' inheritViewBox sx={{ color: 'white' }} />
+            <Typography variant='span' sx={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'white' }}>Trello</Typography>
+          </Box>
+        </Link>
         <Box sx ={{ display: { xs: 'none', md: 'flex' }, gap: 1 }}>
           <Workspaces />
           <Recent />
@@ -58,7 +66,10 @@ function AppBar() {
         </Box>
       </Box>
       <Box sx={{ display: 'flex', alignItems: 'center', gap : 2 }}>
-        <TextField id="outlined-search" label="Search..." type="text" size='small'
+        <TextField
+          id="outlined-search"
+          label="Search..."
+          type="text" size='small'
           value={searchValue}
           onChange={(e) => setSearchValue(e.target.value)}
           InputProps={{
@@ -88,13 +99,15 @@ function AppBar() {
               '&:hover fieldset': { borderColor: 'white' },
               '&.Mui-focused fieldset': { borderColor: 'white' }
             }
-          }} />
+          }}
+        />
+
+        {/* Dark - Light - System modes */}
         <ModeSelect />
-        <Tooltip title="Notifications">
-          <Badge color="warning" variant="dot" sx={{ cursor: 'pointer' }}>
-            <NotificationsNoneIcon sx={{ color: 'white' }} />
-          </Badge>
-        </Tooltip>
+
+        {/* Xử lý hiển thị các thông báo - notifications */}
+        <Notifications />
+
         <Tooltip title="Help" sx={{ cursor: 'pointer', color: 'white' }}>
           <HelpOutlineIcon />
         </Tooltip>

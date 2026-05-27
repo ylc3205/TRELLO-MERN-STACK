@@ -1,6 +1,5 @@
 import Box from '@mui/material/Box'
 import React from 'react'
-import Typography from '@mui/material/Typography'
 import Button from '@mui/material/Button'
 import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
@@ -22,11 +21,19 @@ import { CSS } from '@dnd-kit/utilities'
 import { useState } from 'react'
 import TextField from '@mui/material/TextField'
 import CloseIcon from '@mui/icons-material/Close'
-// import theme from '~/theme'
 import { toast } from 'react-toastify'
+import { useConfirm } from 'material-ui-confirm'
+import { createNewCardAPI, deleteColumnDetailsAPI, updateColumnDetailsAPI } from '~/apis'
+import { cloneDeep } from 'lodash'
+import { useDispatch, useSelector } from 'react-redux'
+import { selectCurrentActiveBoard, updateCurrentActiveBoard } from '~/redux/activeBoard/activeBoardSlice'
+import ToggleFocusInput from '~/components/Form/ToggleFocusInput'
 
 
-function Column({ column, createNewCard }) {
+function Column({ column }) {
+  const dispatch = useDispatch()
+  const board = useSelector(selectCurrentActiveBoard)
+
   const {attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: column._id,
     data: { ...column }
@@ -49,7 +56,7 @@ function Column({ column, createNewCard }) {
   const toggleOpenNewCardForm = () => setopenNewCardForm(!openNewCardForm)
 
   const [newCardTitle, setNewCardTitle] = useState('')
-  const addNewCard = () => {
+  const addNewCard = async () => {
     if (!newCardTitle) {
       toast.error('Please enter card title!', { position: 'bottom-right' })
       return
@@ -59,11 +66,72 @@ function Column({ column, createNewCard }) {
       title: newCardTitle,
       columnId: column._id
     }
-    createNewCard(newCardData)
+
+    // Gọi API tạo mới card và làm lại dữ liệu state board
+    const createdCard = await createNewCardAPI({
+      ...newCardData,
+      boardId: board._id
+    })
+
+    // Upate state board
+    // FrontEnd tự làm đúng lại state data board
+    const newBoard = cloneDeep(board)
+    const columnToUpdate = newBoard.columns.find(column => column._id === createdCard.columnId)
+    if (columnToUpdate) {
+      // Nếu column rỗng, bản chất là đang chứa 1 placeholder card
+      if (columnToUpdate.cards.some(card => card.FE_PlaceholderCard)) {
+        columnToUpdate.cards = [createdCard]
+        columnToUpdate.cardOrderIds = [createdCard._id]
+      } else {
+        // Ngược lại column đã có data thì push vào cuối mảng
+        columnToUpdate.cards.push(createdCard)
+        columnToUpdate.cardOrderIds.push(createdCard._id)
+      }
+
+    }
+    dispatch(updateCurrentActiveBoard(newBoard))
+
     // Đóng trạng thái thêm card mới và clear input
     toggleOpenNewCardForm()
     setNewCardTitle('')
   }
+
+  // Xử lý xóa column và card
+  const confirmDeleteColumn = useConfirm()
+  const handleDeleteColumn = () => {
+    confirmDeleteColumn({
+      title: 'Delete column?',
+      description: 'This action will permanently delete your column and its cards! Are you sure?',
+      confirmationText: 'Confirm',
+      cancellationText: 'Cancel'
+      // allowClose: false,
+      // dialogProps: { maxWidth: 'xs' },
+      // confirmationButtonProps : {},
+      // cancellationButtonProps: {}
+    }).then(() => {
+      // Update chuẩn dữ liệu state board
+      const newBoard = { ...board }
+      newBoard.columns = newBoard.columns.filter(c => c._id !== column._id)
+      newBoard.columnOrderIds = newBoard.columnOrderIds.filter(_id => _id !== column._id)
+      dispatch(updateCurrentActiveBoard(newBoard))
+
+      // Gọi API xử lý phía BE
+      deleteColumnDetailsAPI(column._id).then(res => {
+        toast.success(res?.deleteResult)
+      })
+    }).catch(() => {})
+  }
+
+  const onUpdateColumnTitle = (newTitle) => {
+    // Call API update column và xử lý dữ liệu board trong redux
+    updateColumnDetailsAPI(column._id, { title: newTitle }).then(() => {
+      const newBoard = cloneDeep(board)
+      const columnToUpdate = newBoard.columns.find(c => c._id === column._id)
+      if (columnToUpdate) columnToUpdate.title = newTitle
+      dispatch(updateCurrentActiveBoard(newBoard))
+    })
+  }
+
   return (
     <div ref={setNodeRef} style={dndKitColumnStyles} {...attributes}>
       <Box
@@ -88,11 +156,11 @@ function Column({ column, createNewCard }) {
           justifyContent: 'space-between',
           cursor: 'pointer'
         }}>
-          <Typography variant='h6' sx={{
-            fontSize: '1rem',
-            fontWeight: 'bold',
-            cursor: 'pointer'
-          }}>{column?.title}</Typography>
+          <ToggleFocusInput
+            value={column?.title}
+            onChangedValue={onUpdateColumnTitle}
+            data-no-dnd="true"
+          />
 
           <Box>
             <Tooltip title='More option'>
@@ -110,14 +178,23 @@ function Column({ column, createNewCard }) {
               anchorEl={anchorEl}
               open={open}
               onClose={handleClose}
+              onClick={handleClose}
               slotProps={{
                 list: {
                   'aria-labelledby': 'basic-column-dropdown'
                 }
               }}
             >
-              <MenuItem>
-                <ListItemIcon><AddCardIcon fontSize="small" /></ListItemIcon>
+              <MenuItem
+                onClick={toggleOpenNewCardForm}
+                sx={{
+                  '&:hover': {
+                    color: 'success.light',
+                    '& .add-card-icon': { color: 'success.light' }
+                  }
+                }}
+              >
+                <ListItemIcon><AddCardIcon className='add-card-icon' fontSize="small" /></ListItemIcon>
                 <ListItemText>Add new card</ListItemText>
               </MenuItem>
               <MenuItem>
@@ -133,9 +210,17 @@ function Column({ column, createNewCard }) {
                 <ListItemText>Paste</ListItemText>
               </MenuItem>
               <Divider />
-              <MenuItem>
-                <ListItemIcon><DeleteForeverIcon fontSize="small" /></ListItemIcon>
-                <ListItemText>Remove this column</ListItemText>
+              <MenuItem
+                onClick={handleDeleteColumn}
+                sx={{
+                  '&:hover': {
+                    color: 'warning.dark',
+                    '& .delete-forever-icon': { color: 'warning.dark' }
+                  }
+                }}
+              >
+                <ListItemIcon><DeleteForeverIcon className='delete-forever-icon' fontSize="small" /></ListItemIcon>
+                <ListItemText>Delete this column</ListItemText>
               </MenuItem>
               <MenuItem>
                 <ListItemIcon><Cloud fontSize="small" /></ListItemIcon>
@@ -198,6 +283,7 @@ function Column({ column, createNewCard }) {
               />
               <Box sx ={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Button
+                  className='interceptor-loading'
                   onClick={addNewCard}
                   variant='contained' color='success' size='small'
                   sx ={{

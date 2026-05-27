@@ -17,9 +17,41 @@ const createNew = async(req, res, next) => {
   } catch (error) {
     next(new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, new Error(error).message))
   }
+}
 
+const update = async(req, res, next) => {
+  // Không dùng required() trong update
+  const correctCondition = Joi.object({
+    title: Joi.string().min(3).max(50).trim().strict(),
+    description: Joi.string().optional()
+  })
+
+  try {
+    // Đối với update cho phép Unknown để ko cần đẩy 1 số field
+    await correctCondition.validateAsync(req.body, {
+      abortEarly: false,
+      allowUnknown: true
+    })
+    next()
+  } catch (error) {
+    next(new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, new Error(error).message))
+  }
+}
+
+const deleteItem = async(req, res, next) => {
+  const correctCondition = Joi.object({
+    id: Joi.string().required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)
+  })
+  try {
+    await correctCondition.validateAsync(req.params)
+    next()
+  } catch (error) {
+    next(new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, new Error(error).message))
+  }
 }
 
 export const cardValidation = {
-  createNew
+  createNew,
+  update,
+  deleteItem
 }
