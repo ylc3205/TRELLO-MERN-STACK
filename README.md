@@ -79,3 +79,32 @@ MERN STACK/
 │   └── App.jsx
 │
 └── README.md
+
+# 🔑 Authentication
+
+The application supports:
+
+User Registration
+Login / Logout
+JWT Authentication
+Protected Routes
+Email Verification
+# 📌 Main Functionalities
+📋 Board Management
+Create boards
+Update board title
+Delete boards
+📑 Column Management
+Add columns
+Edit column names
+Delete columns
+Reorder columns
+📝 Card Management
+Create task cards
+Edit card details
+Move cards between columns
+Delete cards
+🎯 Drag & Drop
+Drag cards between columns
+Drag columns within boards
+Smooth Trello-like interaction
