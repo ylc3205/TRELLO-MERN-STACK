@@ -14,6 +14,10 @@ const CARD_COLLECTION_SCHEMA = Joi.object({
   description: Joi.string().optional(),
 
   cover: Joi.string().default(null),
+
+  // Trạng thái hoàn thành của card — do user tự đánh dấu
+  // true = đã xong, false = chưa xong
+  isDone: Joi.boolean().default(false),
   ownerIds: Joi.array().items(
     Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)
   ).default([]),

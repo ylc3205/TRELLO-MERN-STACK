@@ -1,5 +1,6 @@
 import Box from '@mui/material/Box'
 import Modal from '@mui/material/Modal'
+import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 import Avatar from '@mui/material/Avatar'
 import CreditCardIcon from '@mui/icons-material/CreditCard'
@@ -25,6 +26,14 @@ import ArchiveOutlinedIcon from '@mui/icons-material/ArchiveOutlined'
 import ShareOutlinedIcon from '@mui/icons-material/ShareOutlined'
 import SubjectRoundedIcon from '@mui/icons-material/SubjectRounded'
 import DvrOutlinedIcon from '@mui/icons-material/DvrOutlined'
+import LinearProgress from '@mui/material/LinearProgress'
+import Chip from '@mui/material/Chip'
+import SpeedIcon from '@mui/icons-material/Speed'
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'
+import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked'
+import EmojiEventsOutlinedIcon from '@mui/icons-material/EmojiEventsOutlined'
+import WarningAmberIcon from '@mui/icons-material/WarningAmber'
+import Alert from '@mui/material/Alert'
 import ToggleFocusInput from '~/components/Form/ToggleFocusInput'
 import VisuallyHiddenInput from '~/components/Form/VisuallyHiddenInput'
 import { singleFileValidator, attachmentFilesValidator } from '~/utils/validators'
@@ -71,11 +80,6 @@ const SidebarItem = styled(Box)(({ theme }) => ({
   }
 }))
 
-/**
- * Note: Modal là một low-component mà bọn MUI sử dụng bên trong những thứ như Dialog, Drawer, Menu, Popover.
- * Ở đây dĩ nhiên chúng ta có thể sử dụng Dialog cũng không thành vấn đề gì, nhưng sẽ sử dụng Modal để dễ linh hoạt
- * tùy biến giao diện từ con số 0 cho phù hợp với mọi nhu cầu nhé.
- */
 function ActiveCard() {
   const dispatch = useDispatch()
   const activeCard = useSelector(selectCurrentActiveCard)
@@ -103,7 +107,7 @@ function ActiveCard() {
       if (columnToUpdate) {
         columnToUpdate.cards = columnToUpdate.cards.filter(c => c._id !== activeCard._id)
         columnToUpdate.cardOrderIds = columnToUpdate.cardOrderIds.filter(_id => _id !== activeCard._id)
-        
+
         // Add placeholder card if empty
         if (isEmpty(columnToUpdate.cards)) {
           columnToUpdate.cards = [generatePlaceholderCard(columnToUpdate)]
@@ -117,7 +121,7 @@ function ActiveCard() {
       deleteCardDetailsAPI(activeCard._id).then(res => {
         toast.success(res?.deleteResult || 'Card deleted successfully')
       })
-    }).catch(() => {})
+    }).catch(() => { })
   }
 
   // Fuction dùng chung cho các TH update card title, description,...
@@ -216,6 +220,44 @@ function ActiveCard() {
     }
   }
 
+  // ====== Tính toán trước khi render ======
+  // isDone của card này
+  const isDone = !!activeCard?.isDone
+
+  // Tìm column chứa card hiện tại
+  const currentColumn = board?.columns?.find(c => c._id === activeCard?.columnId)
+
+  // Tính tiến trình của column: số card isDone / tổng số card thực sự (không đếm placeholder)
+  const realCards = currentColumn?.cards?.filter(c => !c.FE_PlaceholderCard) || []
+  const doneCount = realCards.filter(c => !!c.isDone).length
+  const totalCount = realCards.length
+  const columnProgress = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0
+
+  const hasAttachments = activeCard?.attachments && activeCard.attachments.length > 0
+  const showDeliverableWarning = isDone && !hasAttachments
+
+  // Màu progress bar column
+  const progressColor = columnProgress === 100 ? '#27ae60'
+    : columnProgress >= 75 ? '#2ecc71'
+      : columnProgress >= 50 ? '#f39c12'
+        : columnProgress >= 25 ? '#3498db'
+          : '#95a5a6'
+
+  // Toggle done/undone cho card
+  const onToggleCardDone = async () => {
+    await callApiUpdateCard({ isDone: !isDone })
+    // Cập nhật lại board để column progress tự tính lại
+    const newBoard = cloneDeep(board)
+    const columnToUpdate = newBoard.columns?.find(c => c._id === activeCard?.columnId)
+    if (columnToUpdate) {
+      const cardToUpdate = columnToUpdate.cards?.find(c => c._id === activeCard?._id)
+      if (cardToUpdate) cardToUpdate.isDone = !isDone
+    }
+    dispatch(updateCurrentActiveBoard(newBoard))
+    toast.success(!isDone ? '✔ Card marked as done!' : 'Card marked as in-progress', { position: 'bottom-right' })
+  }
+
+
   return (
     <Modal
       disableScrollLock
@@ -292,6 +334,73 @@ function ActiveCard() {
               </Box>
             </Box>
 
+            {/* Task Progress Section — hiển thị tiến trình thực tế của column */}
+            <Box sx={{
+              mb: 3, p: 2, borderRadius: '8px',
+              bgcolor: isDone
+                ? (theme) => theme.palette.mode === 'dark' ? 'rgba(39,174,96,0.12)' : 'rgba(39,174,96,0.07)'
+                : (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+              border: '1px solid',
+              borderColor: isDone ? '#27ae60' : (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'
+            }}>
+              {/* Dòng 1: Tiêu đề và trạng thái card này */}
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  {isDone
+                    ? <CheckCircleIcon sx={{ fontSize: '18px', color: '#27ae60' }} />
+                    : <SpeedIcon sx={{ fontSize: '18px', color: 'primary.main' }} />
+                  }
+                  <Typography sx={{ fontWeight: '600', fontSize: '14px' }}>Task Progress</Typography>
+                </Box>
+                {/* Chip trạng thái card hiện tại */}
+                <Box
+                  sx={{
+                    px: 1.5, py: 0.25, borderRadius: '12px',
+                    bgcolor: isDone ? '#27ae60' : '#95a5a6',
+                    color: '#fff', fontSize: '12px', fontWeight: 700
+                  }}
+                >
+                  {isDone ? 'Done ✔' : 'In Progress'}
+                </Box>
+              </Box>
+
+              {/* Dòng 2: Tiến trình tổng của column */}
+              <Box sx={{ mb: 1 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '11px' }}>
+                    Column progress: {doneCount}/{totalCount} cards done
+                  </Typography>
+                  <Typography variant="caption" sx={{ fontWeight: 800, fontSize: '13px', color: progressColor }}>
+                    {columnProgress}%
+                  </Typography>
+                </Box>
+                <LinearProgress
+                  variant="determinate"
+                  value={columnProgress}
+                  sx={{
+                    height: 10,
+                    borderRadius: 5,
+                    bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)',
+                    '& .MuiLinearProgress-bar': { borderRadius: 5, bgcolor: progressColor }
+                  }}
+                />
+              </Box>
+            </Box>
+
+
+            {/* Deliverables Warning — hiển thị khi Done nhưng chưa upload file */}
+            {showDeliverableWarning && (
+              <Alert
+                severity="warning"
+                icon={<WarningAmberIcon fontSize="small" />}
+                sx={{ mb: 2, borderRadius: '8px', fontSize: '13px' }}
+              >
+                <strong>Task completed but no deliverables uploaded.</strong>
+                <br />
+                <span style={{ fontSize: '12px' }}>Please upload your work output (PDF, document, source code…) to this card.</span>
+              </Alert>
+            )}
+
             <Box sx={{ mb: 3 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                 <SubjectRoundedIcon />
@@ -320,13 +429,47 @@ function ActiveCard() {
               />
             </Box>
 
-            {/* Feature 05b: Hiển thị danh sách Attachments */}
-            <CardAttachmentSection
-              attachments={activeCard?.attachments}
-              onUploadAttachments={onUploadAttachments}
-              onRemoveAttachment={onRemoveAttachment}
-              isUploadingAttachment={isUploadingAttachment}
-            />
+            {/* Feature 05b: Deliverables / Attachments
+                Khi progress = 100 (Done): hiển thị nổi bật dưới dạng "sản phẩm bàn giao" */}
+            <Box
+              sx={{
+                mt: 1,
+                ...(isDone && {
+                  p: 2,
+                  borderRadius: '10px',
+                  border: '2px solid #27ae60',
+                  bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(39,174,96,0.08)' : 'rgba(39,174,96,0.04)'
+                })
+              }}
+            >
+              {isDone && (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: hasAttachments ? 1.5 : 0.5 }}>
+                  <EmojiEventsOutlinedIcon sx={{ color: '#27ae60', fontSize: '20px' }} />
+                  <Typography sx={{ fontWeight: 700, fontSize: '15px', color: '#27ae60' }}>
+                    Deliverables
+                  </Typography>
+                  {hasAttachments && (
+                    <Box sx={{
+                      ml: 'auto', px: 1, py: 0.25, borderRadius: '10px',
+                      bgcolor: '#27ae60', color: '#fff', fontSize: '11px', fontWeight: 700
+                    }}>
+                      {activeCard.attachments.length} file{activeCard.attachments.length > 1 ? 's' : ''}
+                    </Box>
+                  )}
+                </Box>
+              )}
+              <CardAttachmentSection
+                attachments={activeCard?.attachments}
+                onUploadAttachments={onUploadAttachments}
+                onRemoveAttachment={onRemoveAttachment}
+                isUploadingAttachment={isUploadingAttachment}
+              />
+              {isDone && !hasAttachments && (
+                <Typography variant="caption" sx={{ color: 'text.disabled', fontStyle: 'italic' }}>
+                  No deliverables uploaded yet.
+                </Typography>
+              )}
+            </Box>
           </Grid>
 
           {/* Right side */}
@@ -362,6 +505,30 @@ function ActiveCard() {
                   )}
                 </>
               )}
+
+              {/* Mark Done / Undo Done — nút chính đánh dấu tiến trình */}
+              <SidebarItem
+                className="active"
+                onClick={onToggleCardDone}
+                sx={{
+                  color: isDone ? '#27ae60' : 'inherit',
+                  bgcolor: isDone
+                    ? (theme) => theme.palette.mode === 'dark' ? 'rgba(39,174,96,0.18)' : 'rgba(39,174,96,0.12)'
+                    : undefined,
+                  border: isDone ? '1px solid #27ae60' : '1px solid transparent',
+                  '&:hover': {
+                    bgcolor: isDone
+                      ? (theme) => theme.palette.mode === 'dark' ? 'rgba(39,174,96,0.28)' : 'rgba(39,174,96,0.20)'
+                      : undefined
+                  }
+                }}
+              >
+                {isDone
+                  ? <CheckCircleIcon fontSize="small" sx={{ color: '#27ae60' }} />
+                  : <RadioButtonUncheckedIcon fontSize="small" />
+                }
+                {isDone ? 'Undo Done' : 'Mark as Done'}
+              </SidebarItem>
 
               {/* Feature 06: Xử lý hành động cập nhật ảnh Cover của Card */}
               <SidebarItem className="active" component="label">

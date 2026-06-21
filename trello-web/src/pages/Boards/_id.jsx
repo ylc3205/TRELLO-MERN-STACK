@@ -65,10 +65,27 @@ function Board() {
   // B3: Update lại trường coumnId của card đã kéo
   // => Làm 1 API support riêng
   const moveCardToDifferentColumn = (currentCardId, prevColumnId, nextColumnId, dndOrderedColumns) => {
+    // Optimistic update: tìm progressValue của nextColumn và cập nhật vào card ngay trên FE
+    // Backend (boardService.moveCardToDifferentColumn B4) sẽ persist giá trị này
+    const nextColumn = dndOrderedColumns.find(c => c._id === nextColumnId)
+    const nextColumnProgressValue = nextColumn?.progressValue
+
+    const columnsWithProgress = dndOrderedColumns.map(col => {
+      if (col._id === nextColumnId && nextColumnProgressValue !== null && nextColumnProgressValue !== undefined) {
+        return {
+          ...col,
+          cards: col.cards.map(card =>
+            card._id === currentCardId ? { ...card, progress: nextColumnProgressValue } : card
+          )
+        }
+      }
+      return col
+    })
+
     // Update chuẩn dữ liệu state board
-    const dndOrderedColumnIds = dndOrderedColumns.map(c => c._id)
+    const dndOrderedColumnIds = columnsWithProgress.map(c => c._id)
     const newBoard = { ...board }
-    newBoard.columns = dndOrderedColumns
+    newBoard.columns = columnsWithProgress
     newBoard.columnOrderIds = dndOrderedColumnIds
     dispatch(updateCurrentActiveBoard(newBoard))
 
@@ -86,6 +103,7 @@ function Board() {
       nextCardOrderIds: dndOrderedColumns.find(c => c._id === nextColumnId)?.cardOrderIds
     })
   }
+
 
   if (!board) {
     return <PageLoadingSpinner caption="Loading Board..." />

@@ -20,6 +20,9 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useState } from 'react'
 import TextField from '@mui/material/TextField'
+import Typography from '@mui/material/Typography'
+import LinearProgress from '@mui/material/LinearProgress'
+import Chip from '@mui/material/Chip'
 import CloseIcon from '@mui/icons-material/Close'
 import { toast } from 'react-toastify'
 import { useConfirm } from 'material-ui-confirm'
@@ -28,7 +31,6 @@ import { cloneDeep } from 'lodash'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectCurrentActiveBoard, updateCurrentActiveBoard } from '~/redux/activeBoard/activeBoardSlice'
 import ToggleFocusInput from '~/components/Form/ToggleFocusInput'
-
 
 function Column({ column }) {
   const dispatch = useDispatch()
@@ -56,6 +58,19 @@ function Column({ column }) {
   const toggleOpenNewCardForm = () => setopenNewCardForm(!openNewCardForm)
 
   const [newCardTitle, setNewCardTitle] = useState('')
+
+  // Tính tiến trình tự động từ cards: số card isDone / tổng card (không đếm placeholder)
+  const realCards = orderedCards?.filter(c => !c.FE_PlaceholderCard) || []
+  const doneCount = realCards.filter(c => !!c.isDone).length
+  const totalCount = realCards.length
+  const columnProgress = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0
+
+  const progressBarColor = columnProgress === 100 ? '#27ae60'
+    : columnProgress >= 75 ? '#2ecc71'
+      : columnProgress >= 50 ? '#f39c12'
+        : columnProgress >= 25 ? '#3498db'
+          : '#95a5a6'
+
   const addNewCard = async () => {
     if (!newCardTitle) {
       toast.error('Please enter card title!', { position: 'bottom-right' })
@@ -156,11 +171,30 @@ function Column({ column }) {
           justifyContent: 'space-between',
           cursor: 'pointer'
         }}>
-          <ToggleFocusInput
-            value={column?.title}
-            onChangedValue={onUpdateColumnTitle}
-            data-no-dnd="true"
-          />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1, overflow: 'hidden' }}>
+            <ToggleFocusInput
+              value={column?.title}
+              onChangedValue={onUpdateColumnTitle}
+              data-no-dnd="true"
+            />
+            {/* Badge hiển thị tiến độ tự động */}
+            {totalCount > 0 && (
+              <Tooltip title={`${doneCount}/${totalCount} cards done`} arrow>
+                <Chip
+                  label={`${columnProgress}%`}
+                  size="small"
+                  sx={{
+                    height: '20px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    flexShrink: 0,
+                    bgcolor: progressBarColor,
+                    color: '#fff'
+                  }}
+                />
+              </Tooltip>
+            )}
+          </Box>
 
           <Box>
             <Tooltip title='More option'>
@@ -229,6 +263,43 @@ function Column({ column }) {
             </Menu>
           </Box>
         </Box>
+
+
+        {/* Progress bar tự động theo số card isDone */}
+        {totalCount > 0 && (
+          <Box
+            data-no-dnd="true"
+            sx={{ px: 2, pb: 1 }}
+          >
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.25 }}>
+              <Typography
+                variant="caption"
+                sx={{ fontSize: '10px', color: 'text.secondary' }}
+              >
+                {doneCount}/{totalCount} done
+              </Typography>
+              <Typography
+                variant="caption"
+                sx={{ fontSize: '10px', fontWeight: 700, color: progressBarColor }}
+              >
+                {columnProgress}%
+              </Typography>
+            </Box>
+            <LinearProgress
+              variant="determinate"
+              value={columnProgress}
+              sx={{
+                height: 4,
+                borderRadius: 2,
+                bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
+                '& .MuiLinearProgress-bar': {
+                  borderRadius: 2,
+                  bgcolor: progressBarColor
+                }
+              }}
+            />
+          </Box>
+        )}
 
         {/* List Cards */}
         <ListCards cards={orderedCards} />

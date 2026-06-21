@@ -1,17 +1,20 @@
-import 'dotenv/config'
+const { MongoClient } = require('mongodb');
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 async function run() {
+  const client = new MongoClient(process.env.MONGODB_URI);
   try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${process.env.GEMINI_API_KEY}`
-    const response = await fetch(url)
-    const data = await response.json()
-    const validModels = data.models
-      .filter(m => m.supportedGenerationMethods.includes('generateContent'))
-      .map(m => m.name)
-    console.log(validModels)
+    await client.connect();
+    console.log('Connected to MongoDB');
+    const db = client.db(process.env.DATABASE_NAME);
+    const users = await db.collection('users').find({}).toArray();
+    users.forEach(u => console.log({ _id: u._id, email: u.email, displayName: u.displayName }));
   } catch (error) {
-    console.error('Error:', error.message)
+    console.error('Error:', error);
+  } finally {
+    await client.close();
   }
 }
 
-run()
+run();

@@ -13,6 +13,10 @@ const COLUMN_COLLECTION_SCHEMA = Joi.object({
     Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)
   ).default([]),
 
+  // Giá trị tiến độ của column (0-100), dùng để tự động cập nhật progress của card khi kéo thả
+  // null = column này không có progress tracking
+  progressValue: Joi.number().min(0).max(100).default(null).allow(null),
+
   createdAt: Joi.date().timestamp('javascript').default(Date.now),
   updatedAt: Joi.date().timestamp('javascript').default(null),
   _destroy: Joi.boolean().default(false)
