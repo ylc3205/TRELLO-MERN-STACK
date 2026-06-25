@@ -34,10 +34,10 @@ A professional, feature-rich Trello-inspired project management platform built o
 ### ⏰ Smart Deadlines & Automated Alerts
 - **Interactive Datetime Picker**: Set precise target dates and times on cards directly from the card details modal.
 - **Dynamic Status Badges**: Real-time status chips indicating task progress:
-  - 🟢 **Đã xong** (Completed) - when checked as completed.
-  - 🟡 **Sắp tới hạn** (Due Soon) - when the deadline is within the alert threshold.
-  - 🔴 **Quá hạn** (Overdue) - when the current time has passed the deadline.
-  - 🔵 **Đang làm** (In Progress) - default active state.
+  - 🟢 **Completed** - when checked as completed.
+  - 🟡 **Due Soon** - when the deadline is within the alert threshold.
+  - 🔴 **Overdue**  - when the current time has passed the deadline.
+  - 🔵 **In Progress** - default active state.
 - **Automated Alerts (Background Cron Service)**: A backend background daemon powered by `node-cron` scans the database every 5 minutes. If an assigned card's deadline is exactly **5 minutes away** (or custom threshold), the service automatically dispatches:
   1. Real-time **Socket.io** notifications to all assigned card members.
   2. Transactional email warnings through **Brevo Mail** to the members' registered email addresses.
