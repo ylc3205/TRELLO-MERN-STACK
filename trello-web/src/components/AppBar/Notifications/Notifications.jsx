@@ -85,7 +85,7 @@ function Notifications() {
     const onReceiveInvitation = (invitation) => {
       if (invitation.inviteeId === currentUser._id) {
         dispatch(addNotification(invitation))
-        toast.info(`🎉 Bạn được mời vào Board "${invitation.board?.title}"`)
+        toast.info(`🎉 You have been invited to Board "${invitation.board?.title}"`)
       }
     }
 
@@ -156,7 +156,7 @@ function Notifications() {
 
   return (
     <Box>
-      <Tooltip title="Thông báo">
+      <Tooltip title="Notifications">
         <Badge
           badgeContent={totalUnread > 0 ? totalUnread : null}
           color="error"
@@ -187,12 +187,12 @@ function Notifications() {
       >
         {/* Header */}
         <Box sx={{ px: 2, py: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid', borderColor: 'divider' }}>
-          <Typography variant="subtitle1" fontWeight={700}>Thông báo</Typography>
+          <Typography variant="subtitle1" fontWeight={700}>Notifications</Typography>
           {unreadCardCount > 0 && (
-            <Tooltip title="Đánh dấu tất cả đã đọc">
+            <Tooltip title="Mark all as read">
               <Box onClick={handleMarkAllRead} sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 0.5, color: 'primary.main', '&:hover': { opacity: 0.7 } }}>
                 <DoneAllIcon fontSize="small" />
-                <Typography variant="caption" fontWeight={600}>Đọc tất cả</Typography>
+                <Typography variant="caption" fontWeight={600}>Mark all read</Typography>
               </Box>
             </Tooltip>
           )}
@@ -209,7 +209,7 @@ function Notifications() {
         {!loadingInvitations && hasNoData && (
           <Box sx={{ px: 2, py: 4, textAlign: 'center', opacity: 0.5 }}>
             <NotificationsNoneIcon sx={{ fontSize: 40, mb: 1 }} />
-            <Typography variant="body2">Chưa có thông báo nào</Typography>
+            <Typography variant="body2">No notifications yet</Typography>
           </Box>
         )}
 
@@ -218,7 +218,7 @@ function Notifications() {
           <Box>
             <Box sx={{ px: 2, py: 0.75 }}>
               <Typography variant="caption" fontWeight={700} sx={{ opacity: 0.5, textTransform: 'uppercase', letterSpacing: 0.8 }}>
-                Lời mời Board
+                Board Invitations
               </Typography>
             </Box>
             {invitations.map((notification, index) => (
@@ -227,7 +227,7 @@ function Notifications() {
                   <GroupAddIcon sx={{ mt: 0.25, flexShrink: 0, color: 'primary.main' }} fontSize="small" />
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Typography variant="body2" sx={{ wordBreak: 'break-word', whiteSpace: 'normal' }}>
-                      <strong>{notification.inviter?.[0]?.displayName || 'Ai đó'}</strong>{' '}đã mời bạn vào board{' '}
+                      <strong>{notification.inviter?.[0]?.displayName || 'Someone'}</strong>{' '}invited you to board{' '}
                       <strong>{notification.board?.[0]?.title}</strong>
                     </Typography>
 
@@ -236,11 +236,11 @@ function Notifications() {
                       <Box sx={{ display: 'flex', gap: 1, mt: 0.75 }}>
                         <Button size="small" variant="contained" color="success"
                           onClick={() => handleUpdateBoardInvitation(BOARD_INVITATION_STATUS.ACCEPTED, notification._id)}>
-                          Chấp nhận
+                          Accept
                         </Button>
                         <Button size="small" variant="outlined" color="error"
                           onClick={() => handleUpdateBoardInvitation(BOARD_INVITATION_STATUS.REJECTED, notification._id)}>
-                          Từ chối
+                          Decline
                         </Button>
                       </Box>
                     )}
@@ -248,10 +248,10 @@ function Notifications() {
                     {/* Trạng thái đã xử lý */}
                     <Box sx={{ mt: 0.5 }}>
                       {notification.boardInvitation?.status === BOARD_INVITATION_STATUS.ACCEPTED && (
-                        <Chip icon={<DoneIcon />} label="Đã chấp nhận" color="success" size="small" />
+                        <Chip icon={<DoneIcon />} label="Accepted" color="success" size="small" />
                       )}
                       {notification.boardInvitation?.status === BOARD_INVITATION_STATUS.REJECTED && (
-                        <Chip icon={<NotInterestedIcon />} label="Đã từ chối" size="small" />
+                        <Chip icon={<NotInterestedIcon />} label="Declined" size="small" />
                       )}
                     </Box>
 
@@ -274,7 +274,7 @@ function Notifications() {
           <Box>
             <Box sx={{ px: 2, py: 0.75 }}>
               <Typography variant="caption" fontWeight={700} sx={{ opacity: 0.5, textTransform: 'uppercase', letterSpacing: 0.8 }}>
-                Hoạt động thẻ
+                Card Activity
               </Typography>
             </Box>
             {cardNotifications.slice(0, 15).map((notification, index) => (

@@ -104,7 +104,7 @@ function CreateMenu() {
         {/* Header */}
         <Box sx={{ px: 2, py: 1.5 }}>
           <Typography variant='caption' sx={{ fontWeight: 700, opacity: 0.5, textTransform: 'uppercase', letterSpacing: 1 }}>
-            Tạo Nhanh
+            Quick Create
           </Typography>
         </Box>
 
@@ -118,9 +118,9 @@ function CreateMenu() {
             <DashboardIcon sx={{ fontSize: 18, color: 'white' }} />
           </Box>
           <Box>
-            <Typography variant='body2' sx={{ fontWeight: 700 }}>Tạo Bảng</Typography>
+            <Typography variant='body2' sx={{ fontWeight: 700 }}>Create Board</Typography>
             <Typography variant='caption' sx={{ opacity: 0.55, display: 'block' }}>
-              Bảng là nơi chứa các danh sách công việc
+              A board is a place to organize your work lists
             </Typography>
           </Box>
         </MenuItem>
@@ -135,9 +135,9 @@ function CreateMenu() {
             <AutoAwesomeIcon sx={{ fontSize: 18, color: 'white' }} />
           </Box>
           <Box>
-            <Typography variant='body2' sx={{ fontWeight: 700 }}>Bắt Đầu Với Mẫu</Typography>
+            <Typography variant='body2' sx={{ fontWeight: 700 }}>Start With a Template</Typography>
             <Typography variant='caption' sx={{ opacity: 0.55, display: 'block' }}>
-              Tận dụng mẫu được thiết kế sẵn
+              Use a pre-designed template to get started
             </Typography>
           </Box>
         </MenuItem>
@@ -154,9 +154,9 @@ function CreateMenu() {
             <GroupWorkIcon sx={{ fontSize: 18, color: 'white' }} />
           </Box>
           <Box>
-            <Typography variant='body2' sx={{ fontWeight: 700 }}>Tạo Không Gian Làm Việc</Typography>
+            <Typography variant='body2' sx={{ fontWeight: 700 }}>Create Workspace</Typography>
             <Typography variant='caption' sx={{ opacity: 0.55, display: 'block' }}>
-              Nhóm các bảng lại để phối hợp cùng nhau
+              Group boards together for team collaboration
             </Typography>
           </Box>
         </MenuItem>

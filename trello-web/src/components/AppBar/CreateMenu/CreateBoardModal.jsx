@@ -24,14 +24,14 @@ import { toast } from 'react-toastify'
 
 // Board cover color presets
 const COVER_COLORS = [
-  { value: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', label: 'Tím' },
-  { value: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', label: 'Hồng' },
-  { value: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', label: 'Xanh dương' },
-  { value: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', label: 'Xanh lá' },
-  { value: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', label: 'Vàng đỏ' },
+  { value: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', label: 'Purple' },
+  { value: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', label: 'Pink' },
+  { value: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', label: 'Blue' },
+  { value: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', label: 'Green' },
+  { value: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', label: 'Orange-Red' },
   { value: 'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)', label: 'Lavender' },
   { value: 'linear-gradient(135deg, #0052CC 0%, #0065FF 100%)', label: 'Navy' },
-  { value: 'linear-gradient(135deg, #00875A 0%, #00B8D9 100%)', label: 'Ngọc lam' }
+  { value: 'linear-gradient(135deg, #00875A 0%, #00B8D9 100%)', label: 'Teal' }
 ]
 
 function CreateBoardModal({ open, onClose, onCreated, defaultWorkspaceId, workspaces: propWorkspaces }) {
@@ -63,7 +63,7 @@ function CreateBoardModal({ open, onClose, onCreated, defaultWorkspaceId, worksp
 
   const handleCreate = async () => {
     if (!isValid) {
-      toast.warning('Tên board phải có ít nhất 3 ký tự!')
+      toast.warning('Board name must be at least 3 characters!')
       return
     }
     setLoading(true)
@@ -99,7 +99,7 @@ function CreateBoardModal({ open, onClose, onCreated, defaultWorkspaceId, worksp
         }}>
           <DashboardIcon sx={{ color: 'white', fontSize: 18 }} />
         </Box>
-        <Typography variant='h6' sx={{ fontWeight: 700 }}>Tạo Board Mới</Typography>
+        <Typography variant='h6' sx={{ fontWeight: 700 }}>Create New Board</Typography>
       </DialogTitle>
 
       <DialogContent>
@@ -111,14 +111,14 @@ function CreateBoardModal({ open, onClose, onCreated, defaultWorkspaceId, worksp
           transition: 'background 0.3s ease'
         }}>
           <Typography variant='h6' sx={{ color: 'white', fontWeight: 700, textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
-            {title || 'Tên Board'}
+            {title || 'Board Name'}
           </Typography>
         </Box>
 
         {/* Color picker */}
         <Box sx={{ mb: 2 }}>
           <Typography variant='caption' sx={{ fontWeight: 600, opacity: 0.6, mb: 1, display: 'block' }}>
-            Màu nền
+            Background Color
           </Typography>
           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
             {COVER_COLORS.map(c => (
@@ -141,19 +141,19 @@ function CreateBoardModal({ open, onClose, onCreated, defaultWorkspaceId, worksp
 
         {/* Board name */}
         <TextField
-          fullWidth label='Tên Board *' variant='outlined' size='small'
+          fullWidth label='Board Name *' variant='outlined' size='small'
           value={title} onChange={e => setTitle(e.target.value)}
-          placeholder='Ví dụ: Sprint tháng 7, Website Redesign...'
+          placeholder='e.g. July Sprint, Website Redesign...'
           sx={{ mb: 2 }} autoFocus
           error={title.length > 0 && title.trim().length < 3}
-          helperText={title.length > 0 && title.trim().length < 3 ? 'Tối thiểu 3 ký tự' : ''}
+          helperText={title.length > 0 && title.trim().length < 3 ? 'Minimum 3 characters' : ''}
         />
 
         {/* Workspace select */}
         <FormControl fullWidth size='small' sx={{ mb: 2 }}>
           <InputLabel>Workspace</InputLabel>
           <Select value={workspaceId} onChange={e => setWorkspaceId(e.target.value)} label='Workspace'>
-            <MenuItem value=''><em>Không thuộc workspace nào</em></MenuItem>
+            <MenuItem value=''><em>No workspace</em></MenuItem>
             {workspaces.map(ws => (
               <MenuItem key={ws._id} value={ws._id}>{ws.title}</MenuItem>
             ))}
@@ -163,7 +163,7 @@ function CreateBoardModal({ open, onClose, onCreated, defaultWorkspaceId, worksp
         {/* Visibility */}
         <Box>
           <Typography variant='caption' sx={{ fontWeight: 600, opacity: 0.6, mb: 1, display: 'block' }}>
-            Quyền truy cập
+            Visibility
           </Typography>
           <ToggleButtonGroup
             value={type} exclusive
@@ -172,25 +172,25 @@ function CreateBoardModal({ open, onClose, onCreated, defaultWorkspaceId, worksp
           >
             <ToggleButton value='public' sx={{ textTransform: 'none', gap: 0.5, fontWeight: 600 }}>
               <PublicIcon fontSize='small' />
-              Công khai
+              Public
             </ToggleButton>
             <ToggleButton value='private' sx={{ textTransform: 'none', gap: 0.5, fontWeight: 600 }}>
               <LockIcon fontSize='small' />
-              Riêng tư
+              Private
             </ToggleButton>
           </ToggleButtonGroup>
         </Box>
       </DialogContent>
 
       <DialogActions sx={{ p: 2, pt: 0 }}>
-        <Button onClick={onClose} disabled={loading} sx={{ borderRadius: 2 }}>Huỷ</Button>
+        <Button onClick={onClose} disabled={loading} sx={{ borderRadius: 2 }}>Cancel</Button>
         <Button
           variant='contained' onClick={handleCreate}
           disabled={!isValid || loading}
           startIcon={loading ? <CircularProgress size={16} color='inherit' /> : <CheckCircleIcon />}
           sx={{ borderRadius: 2, px: 3, fontWeight: 700 }}
         >
-          {loading ? 'Đang tạo...' : 'Tạo Board'}
+          {loading ? 'Creating...' : 'Create Board'}
         </Button>
       </DialogActions>
     </Dialog>

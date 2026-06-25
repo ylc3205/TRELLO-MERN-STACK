@@ -5,7 +5,6 @@ import { userModel } from '~/models/userModel'
 import { BrevoProvider } from '~/providers/BrevoProvider'
 
 // Hằng số cảnh báo trước deadline (5 phút)
-// Bạn có thể chỉnh sửa số 5 ở đây thành số phút mong muốn nếu giảng viên hỏi
 const WARNING_THRESHOLD_MS = 5 * 60 * 1000
 
 const formatDateTime = (dateVal) => {
@@ -21,12 +20,10 @@ const formatDateTime = (dateVal) => {
 }
 
 export const startDeadlineCron = () => {
-  // Quét mỗi 5 phút một lần (*/5 * * * *). Nếu muốn đổi thành quét mỗi 1 phút để test nhanh, sửa thành '* * * * *'
   cron.schedule('*/5 * * * *', async () => {
     try {
       const now = new Date()
       
-      // Lấy toàn bộ cards: có deadline, chưa xong, chưa gửi thông báo, và chưa bị xóa
       const cards = await GET_DB().collection('cards').find({
         deadline: { $ne: null },
         isDone: false,
@@ -38,7 +35,6 @@ export const startDeadlineCron = () => {
         const deadlineDate = new Date(card.deadline)
         const diffMs = deadlineDate - now
 
-        // Nếu hạn chót nằm trong ngưỡng 5 phút (kể cả quá hạn một chút do chu kỳ quét)
         if (diffMs <= WARNING_THRESHOLD_MS) {
           // Bỏ qua nếu card không có thành viên nào được gán (theo yêu cầu của user)
           if (!card.memberIds || card.memberIds.length === 0) {

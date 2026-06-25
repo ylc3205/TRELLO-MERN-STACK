@@ -83,7 +83,7 @@ function CreateWorkspaceModal({ open, onClose, onCreated }) {
         }}>
           <GroupWorkIcon sx={{ color: 'white', fontSize: 18 }} />
         </Box>
-        <Typography variant='h6' sx={{ fontWeight: 700 }}>Tạo Không Gian Làm Việc</Typography>
+        <Typography variant='h6' sx={{ fontWeight: 700 }}>Create Workspace</Typography>
       </DialogTitle>
 
       <DialogContent>
@@ -99,10 +99,10 @@ function CreateWorkspaceModal({ open, onClose, onCreated }) {
           </Box>
           <Box sx={{ flex: 1 }}>
             <Typography variant='body1' sx={{ fontWeight: 700, mb: 0.5 }}>
-              {title || 'Tên Workspace'}
+              {title || 'Workspace Name'}
             </Typography>
             <Typography variant='caption' sx={{ opacity: 0.5 }}>
-              {description || 'Mô tả workspace của bạn'}
+              {description || 'Describe your workspace'}
             </Typography>
           </Box>
         </Box>
@@ -136,7 +136,7 @@ function CreateWorkspaceModal({ open, onClose, onCreated }) {
         {/* Color picker */}
         <Box sx={{ mb: 2.5 }}>
           <Typography variant='caption' sx={{ fontWeight: 600, opacity: 0.6, mb: 1, display: 'block' }}>
-            Màu
+            Color
           </Typography>
           <Box sx={{ display: 'flex', gap: 1 }}>
             {WS_COLORS.map(c => (
@@ -156,26 +156,26 @@ function CreateWorkspaceModal({ open, onClose, onCreated }) {
 
         {/* Tên workspace */}
         <TextField
-          fullWidth label='Tên Workspace *' variant='outlined' size='small'
+          fullWidth label='Workspace Name *' variant='outlined' size='small'
           value={title} onChange={e => setTitle(e.target.value)}
-          placeholder='Ví dụ: Dự án Website, Team Marketing...'
+          placeholder='e.g. Website Project, Marketing Team...'
           sx={{ mb: 2 }} autoFocus
           error={title.length > 0 && title.trim().length < 3}
-          helperText={title.length > 0 && title.trim().length < 3 ? 'Tối thiểu 3 ký tự' : ''}
+          helperText={title.length > 0 && title.trim().length < 3 ? 'Minimum 3 characters' : ''}
         />
 
         {/* Mô tả */}
         <TextField
-          fullWidth label='Mô tả (tuỳ chọn)' variant='outlined' size='small'
+          fullWidth label='Description (optional)' variant='outlined' size='small'
           value={description} onChange={e => setDescription(e.target.value)}
-          placeholder='Workspace này dùng để làm gì?'
+          placeholder='What is this workspace for?'
           multiline rows={2} sx={{ mb: 2 }}
         />
 
         {/* Visibility */}
         <Box>
           <Typography variant='caption' sx={{ fontWeight: 600, opacity: 0.6, mb: 1, display: 'block' }}>
-            Quyền truy cập
+            Visibility
           </Typography>
           <ToggleButtonGroup
             value={type} exclusive
@@ -184,25 +184,25 @@ function CreateWorkspaceModal({ open, onClose, onCreated }) {
           >
             <ToggleButton value='public' sx={{ textTransform: 'none', gap: 0.5, fontWeight: 600 }}>
               <PublicIcon fontSize='small' />
-              Công khai
+              Public
             </ToggleButton>
             <ToggleButton value='private' sx={{ textTransform: 'none', gap: 0.5, fontWeight: 600 }}>
               <LockIcon fontSize='small' />
-              Riêng tư
+              Private
             </ToggleButton>
           </ToggleButtonGroup>
         </Box>
       </DialogContent>
 
       <DialogActions sx={{ p: 2, pt: 0 }}>
-        <Button onClick={onClose} disabled={loading} sx={{ borderRadius: 2 }}>Huỷ</Button>
+        <Button onClick={onClose} disabled={loading} sx={{ borderRadius: 2 }}>Cancel</Button>
         <Button
           variant='contained' onClick={handleCreate}
           disabled={!isValid || loading}
           startIcon={loading ? <CircularProgress size={16} color='inherit' /> : <CheckCircleIcon />}
           sx={{ borderRadius: 2, px: 3, fontWeight: 700 }}
         >
-          {loading ? 'Đang tạo...' : 'Tạo Workspace'}
+          {loading ? 'Creating...' : 'Create Workspace'}
         </Button>
       </DialogActions>
     </Dialog>

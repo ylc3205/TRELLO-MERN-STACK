@@ -112,7 +112,7 @@ function ActiveCard() {
     if (activeCard.isDone) {
       return (
         <Chip
-          label="Đã xong"
+          label="Completed"
           color="success"
           size="small"
           sx={{ height: '20px', fontSize: '10px', fontWeight: 600 }}
@@ -123,7 +123,7 @@ function ActiveCard() {
     if (diffMs < 0) {
       return (
         <Chip
-          label="Quá hạn"
+          label="Overdue"
           color="error"
           size="small"
           sx={{ height: '20px', fontSize: '10px', fontWeight: 600 }}
@@ -134,7 +134,7 @@ function ActiveCard() {
     if (diffMs <= 5 * 60 * 1000) {
       return (
         <Chip
-          label="Sắp tới hạn"
+          label="Due Soon"
           color="warning"
           size="small"
           sx={{ height: '20px', fontSize: '10px', fontWeight: 600 }}
@@ -143,7 +143,7 @@ function ActiveCard() {
     }
     return (
       <Chip
-        label="Đang làm"
+        label="In Progress"
         color="info"
         size="small"
         sx={{ height: '20px', fontSize: '10px', fontWeight: 600 }}
@@ -205,13 +205,13 @@ function ActiveCard() {
     if (!selectedDate) return
     const timestamp = new Date(selectedDate).getTime()
     await callApiUpdateCard({ deadline: timestamp })
-    toast.success('Hạn deadline đã được lưu!', { position: 'bottom-right' })
+    toast.success('Deadline saved!', { position: 'bottom-right' })
     handleCloseDatePicker()
   }
 
   const handleRemoveDeadline = async () => {
     await callApiUpdateCard({ deadline: null })
-    toast.success('Hạn deadline đã được gỡ bỏ!', { position: 'bottom-right' })
+    toast.success('Deadline removed!', { position: 'bottom-right' })
     setSelectedDate('')
     handleCloseDatePicker()
   }
@@ -416,7 +416,7 @@ function ActiveCard() {
               {/* Deadline Display Block */}
               {activeCard?.deadline && (
                 <Box>
-                  <Typography sx={{ fontWeight: '600', color: 'primary.main', mb: 1 }}>Hạn chót</Typography>
+                  <Typography sx={{ fontWeight: '600', color: 'primary.main', mb: 1 }}>Due Date</Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Checkbox
                       checked={!!activeCard.isDone}
@@ -716,7 +716,7 @@ function ActiveCard() {
       anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
     >
       <Box sx={{ p: 2, width: 280 }}>
-        <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 700 }}>Đặt hạn chót (Deadline)</Typography>
+        <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 700 }}>Set Deadline</Typography>
         <TextField
           type="datetime-local"
           size="small"
@@ -728,11 +728,11 @@ function ActiveCard() {
         />
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Button variant="contained" size="small" onClick={handleSaveDeadline} fullWidth>
-            Lưu
+            Save
           </Button>
           {activeCard?.deadline && (
             <Button variant="outlined" color="error" size="small" onClick={handleRemoveDeadline} fullWidth>
-              Gỡ bỏ
+              Remove
             </Button>
           )}
         </Box>
