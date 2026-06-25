@@ -189,5 +189,31 @@ export const userService = {
   verifyAccount,
   login,
   refreshToken,
-  update
+  update,
+
+  // Recent boards
+  trackRecentBoard: async (userId, boardId) => {
+    try {
+      await userModel.trackRecentBoard(userId, boardId)
+    } catch (error) { throw error }
+  },
+
+  getRecentBoards: async (userId) => {
+    try {
+      return await userModel.getRecentBoards(userId, 10)
+    } catch (error) { throw error }
+  },
+
+  // Starred boards
+  getStarredBoards: async (userId) => {
+    try {
+      return await userModel.getStarredBoards(userId)
+    } catch (error) { throw error }
+  },
+
+  toggleStarBoard: async (userId, boardId) => {
+    try {
+      return await userModel.toggleStarBoard(userId, boardId)
+    } catch (error) { throw error }
+  }
 }

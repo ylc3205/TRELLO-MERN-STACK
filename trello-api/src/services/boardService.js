@@ -1,4 +1,3 @@
-/* eslint-disable no-useless-catch */
 import { slugify } from '~/utils/formatters'
 import { boardModel } from '~/models/boardModel'
 import ApiError from '~/utils/ApiError'
@@ -10,16 +9,17 @@ import { DEFAULT_PAGE, DEFAULT_ITEMS_PER_PAGE } from '~/utils/constants'
 
 const createNew = async (userId, reqBody) => {
   try {
-    // Xử lý logic dự liệu
     const newBoard = {
       ...reqBody,
       slug: slugify(reqBody.title)
     }
 
-    // Gọi tới tầng Model để xử lý lưu bản ghi newBoard vào DB
-    const createdBoard = await boardModel.createNew(userId, newBoard)
+    // Giữ workspaceId dạng string (hoặc null) để Joi validate trước ở model
+    if (!newBoard.workspaceId) {
+      newBoard.workspaceId = null
+    }
 
-    // Lấy bản ghi board sau khi gọi
+    const createdBoard = await boardModel.createNew(userId, newBoard)
     const getNewBoard = await boardModel.findOneById(createdBoard.insertedId)
 
     return getNewBoard

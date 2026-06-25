@@ -29,4 +29,20 @@ Router.route('/update')
     userController.update
   )
 
+// Recent boards - GET lịch sử truy cập
+Router.route('/recent-boards')
+  .get(authMiddleware.isAuthorized, userController.getRecentBoards)
+
+// Track khi user mở một board
+Router.route('/recent-boards/:boardId')
+  .post(authMiddleware.isAuthorized, userController.trackRecentBoard)
+
+// Starred boards - GET danh sách boards đã star
+Router.route('/starred-boards')
+  .get(authMiddleware.isAuthorized, userController.getStarredBoards)
+
+// Toggle star/unstar một board
+Router.route('/starred-boards/:boardId/toggle')
+  .patch(authMiddleware.isAuthorized, userController.toggleStarBoard)
+
 export const userRoute = Router

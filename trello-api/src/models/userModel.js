@@ -23,6 +23,19 @@ const USER_COLLECTION_SCHEMA = Joi.object({
   isActive: Joi.boolean().default(false),
   verifyToken: Joi.string(),
 
+  // Danh sách boardId đã đánh dấu sao (max 50)
+  starredBoards: Joi.array().items(
+    Joi.string()
+  ).max(50).default([]),
+
+  // Danh sách lịch sử truy cập board gần đây (max 20)
+  recentBoards: Joi.array().items(
+    Joi.object({
+      boardId: Joi.string(),
+      accessedAt: Joi.date().timestamp('javascript').default(Date.now)
+    })
+  ).max(20).default([]),
+
   createdAt: Joi.date().timestamp('javascript').default(Date.now),
   updatedAt: Joi.date().timestamp('javascript').default(null),
   _destroy: Joi.boolean().default(false)
@@ -75,6 +88,107 @@ const update = async (userId, updateData) => {
   } catch (error) { throw new Error(error) }
 }
 
+// Toggle star/unstar một board cho user
+const toggleStarBoard = async (userId, boardId) => {
+  try {
+    const user = await findOneById(userId)
+    if (!user) throw new Error('User not found')
+
+    const starredBoards = user.starredBoards || []
+    const isStarred = starredBoards.includes(boardId)
+
+    let result
+    if (isStarred) {
+      result = await GET_DB().collection(USER_COLLECTION_NAME).findOneAndUpdate(
+        { _id: new ObjectId(userId) },
+        { $pull: { starredBoards: boardId }, $set: { updatedAt: Date.now() } },
+        { returnDocument: 'after' }
+      )
+    } else {
+      result = await GET_DB().collection(USER_COLLECTION_NAME).findOneAndUpdate(
+        { _id: new ObjectId(userId) },
+        { $push: { starredBoards: boardId }, $set: { updatedAt: Date.now() } },
+        { returnDocument: 'after' }
+      )
+    }
+    return { isStarred: !isStarred, user: result }
+  } catch (error) { throw new Error(error) }
+}
+
+// Cập nhật lịch sử truy cập board gần đây
+const trackRecentBoard = async (userId, boardId) => {
+  try {
+    // Xóa boardId cũ nếu đã tồn tại (tránh trùng lặp)
+    await GET_DB().collection(USER_COLLECTION_NAME).findOneAndUpdate(
+      { _id: new ObjectId(userId) },
+      { $pull: { recentBoards: { boardId: boardId } } }
+    )
+    // Push vào đầu mảng
+    await GET_DB().collection(USER_COLLECTION_NAME).findOneAndUpdate(
+      { _id: new ObjectId(userId) },
+      {
+        $push: {
+          recentBoards: {
+            $each: [{ boardId: boardId, accessedAt: Date.now() }],
+            $position: 0,
+            $slice: 20
+          }
+        },
+        $set: { updatedAt: Date.now() }
+      }
+    )
+  } catch (error) { throw new Error(error) }
+}
+
+// Lấy starred boards của user (kèm populate board info)
+const getStarredBoards = async (userId) => {
+  try {
+    const result = await GET_DB().collection(USER_COLLECTION_NAME).aggregate([
+      { $match: { _id: new ObjectId(userId) } },
+      {
+        $lookup: {
+          from: 'boards',
+          let: { starredIds: { $map: { input: { $ifNull: ['$starredBoards', []] }, as: 'id', in: { $toObjectId: '$$id' } } } },
+          pipeline: [
+            { $match: { $expr: { $in: ['$_id', '$$starredIds'] }, _destroy: false } }
+          ],
+          as: 'starredBoardsData'
+        }
+      },
+      { $project: { starredBoardsData: 1, starredBoards: 1 } }
+    ]).toArray()
+    return result[0]?.starredBoardsData || []
+  } catch (error) { throw new Error(error) }
+}
+
+// Lấy recent boards của user (kèm populate board info)
+const getRecentBoards = async (userId, limit = 10) => {
+  try {
+    const user = await findOneById(userId)
+    if (!user) return []
+
+    const recentBoards = (user.recentBoards || []).slice(0, limit)
+    if (recentBoards.length === 0) return []
+
+    const boardIds = recentBoards.map(rb => new ObjectId(rb.boardId))
+    const boards = await GET_DB().collection('boards').find({
+      _id: { $in: boardIds },
+      _destroy: false
+    }).toArray()
+
+    const boardMap = {}
+    boards.forEach(b => { boardMap[b._id.toString()] = b })
+
+    const result = recentBoards
+      .filter(rb => boardMap[rb.boardId])
+      .map(rb => ({
+        ...boardMap[rb.boardId],
+        accessedAt: rb.accessedAt
+      }))
+
+    return result
+  } catch (error) { throw new Error(error) }
+}
 
 export const userModel = {
   USER_COLLECTION_NAME,
@@ -83,5 +197,9 @@ export const userModel = {
   createNew,
   findOneById,
   findOneByEmail,
-  update
+  update,
+  toggleStarBoard,
+  trackRecentBoard,
+  getStarredBoards,
+  getRecentBoards
 }

@@ -62,12 +62,10 @@ function BoardChat() {
 
   const messagesEndRef = useRef(null)
 
-  // Fetch Board if not loaded
+  // Fetch Board details on mount to ensure we have the latest member list
   useEffect(() => {
-    if (!board || board._id !== boardId) {
-      dispatch(fetchBoardDetailsAPI(boardId))
-    }
-  }, [boardId, board, dispatch])
+    dispatch(fetchBoardDetailsAPI(boardId))
+  }, [boardId, dispatch])
 
   // Init Socket
   useEffect(() => {
@@ -185,14 +183,14 @@ function BoardChat() {
         <IconButton onClick={() => navigate(`/boards/${boardId}`)}>
           <ArrowBackIcon />
         </IconButton>
-        <Typography variant="h6" sx={{ ml: 1 }}>Quay lại {board.title}</Typography>
+        <Typography variant="h6" sx={{ ml: 1 }}>Back to {board.title}</Typography>
       </Box>
-
+      
       <Box sx={{ flexGrow: 1, display: 'flex', overflow: 'hidden' }}>
         {/* Sidebar */}
         <Box sx={{ width: 300, borderRight: '1px solid', borderColor: 'divider', display: 'flex', flexDirection: 'column' }}>
           <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid', borderColor: 'divider' }}>
-            <Typography variant="h6">Trò chuyện</Typography>
+            <Typography variant="h6">Chats</Typography>
             <IconButton onClick={() => setOpenCreateGroup(true)} color="primary">
               <GroupAddIcon />
             </IconButton>

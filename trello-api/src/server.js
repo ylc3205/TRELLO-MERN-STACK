@@ -12,6 +12,7 @@ import socketIo from 'socket.io'
 import http from 'http'
 import { inviteUserToBoardSocket } from './sockets/inviteUserToBoardSocket'
 import { chatSocket } from './sockets/chatSocket'
+import { startDeadlineCron } from './utils/cronJob'
 
 const START_SERVER = () => {
   const app = express()
@@ -40,10 +41,27 @@ const START_SERVER = () => {
   // Tạo 1 cái server mới bọc app của express để làm realtime với socketio
   const server = http.createServer(app)
   const io = socketIo(server, { cors: corsOptions })
+  
+  // Lưu io vào biến global để các service có thể truy cập phát tin
+  global.io = io
+
   io.on('connection', (socket) => {
     // Gọi các socket tùy theo tính năng
     inviteUserToBoardSocket(socket)
     chatSocket(socket, io)
+
+    // Mỗi user join vào room riêng của họ để nhận thông báo cá nhân
+    socket.on('joinUserRoom', (userId) => {
+      if (userId) {
+        socket.join(`user_${userId}`)
+      }
+    })
+
+    socket.on('leaveUserRoom', (userId) => {
+      if (userId) {
+        socket.leave(`user_${userId}`)
+      }
+    })
   })
 
   // Môi trường Production (ví dụ Render, Heroku...)
@@ -72,6 +90,9 @@ const START_SERVER = () => {
     await CONNECT_DB()
     console.log('2. Connected')
     START_SERVER()
+    
+    // Khởi chạy cron job quét deadline thẻ
+    startDeadlineCron()
   } catch (error) {
     console.error(error)
     process.exit(0)

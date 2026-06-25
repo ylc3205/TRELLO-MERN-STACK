@@ -13,6 +13,10 @@ import BoardChat from '~/pages/Chat/Chat.jsx'
 import { addUnreadConversation } from '~/redux/chat/chatSlice'
 import { io } from 'socket.io-client'
 import { API_ROOT } from '~/utils/constants'
+import WorkspacesPage from '~/pages/Workspaces/WorkspacesPage'
+import RecentPage from '~/pages/Recent/RecentPage'
+import StarredPage from '~/pages/Starred/StarredPage'
+import TemplatesPage from '~/pages/Templates/TemplatesPage'
 
 const ProtectedRoute = ({ user }) => {
   if (!user) return <Navigate to='/login' replace={true} />
@@ -53,6 +57,12 @@ function App() {
         <Route path='/boards/:boardId' element={<Board />} />
         <Route path='/boards/:boardId/chat' element={<BoardChat />} />
         <Route path='/boards' element={<Boards />} />
+
+        {/* Navbar Feature Pages */}
+        <Route path='/workspaces' element={<WorkspacesPage />} />
+        <Route path='/recent' element={<RecentPage />} />
+        <Route path='/starred' element={<StarredPage />} />
+        <Route path='/templates' element={<TemplatesPage />} />
 
         {/* User Settings */}
         <Route path='/settings/account' element={<Settings />} />

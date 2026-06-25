@@ -9,19 +9,17 @@ import Grid from '@mui/material/Unstable_Grid2'
 import Stack from '@mui/material/Stack'
 import Divider from '@mui/material/Divider'
 import SpaceDashboardIcon from '@mui/icons-material/SpaceDashboard'
-import ListAltIcon from '@mui/icons-material/ListAlt'
-import HomeIcon from '@mui/icons-material/Home'
 import ArrowRightIcon from '@mui/icons-material/ArrowRight'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
-import CardMedia from '@mui/material/CardMedia'
 import Pagination from '@mui/material/Pagination'
 import PaginationItem from '@mui/material/PaginationItem'
 import { Link, useLocation } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { selectCurrentUser } from '~/redux/user/userSlice'
 import randomColor from 'randomcolor'
-import SidebarCreateBoardModal from './create'
+import LibraryAddIcon from '@mui/icons-material/LibraryAdd'
+import CreateBoardModal from '~/components/AppBar/CreateMenu/CreateBoardModal'
 import { fetchBoardsAPI, deleteBoardAPI } from '~/apis'
 import { DEFAULT_ITEMS_PER_PAGE, DEFAULT_PAGE } from '~/utils/constants'
 import { useConfirm } from 'material-ui-confirm'
@@ -55,6 +53,7 @@ function Boards() {
   const [boards, setBoards] = useState(null)
   // Tổng toàn bộ số lượng bản ghi boards có trong Database mà phía BE trả về để FE dùng tính toán phân trang
   const [totalBoards, setTotalBoards] = useState(null)
+  const [openCreateBoard, setOpenCreateBoard] = useState(false)
 
   // Xử lý phân trang từ url với MUI: https://mui.com/material-ui/react-pagination/#router-integration
   const location = useLocation()
@@ -133,7 +132,10 @@ function Boards() {
             </Stack>
             <Divider sx={{ my: 1 }} />
             <Stack direction="column" spacing={1}>
-              <SidebarCreateBoardModal afterCreateBoard={afterCreateBoard} />
+              <SidebarItem onClick={() => setOpenCreateBoard(true)}>
+                <LibraryAddIcon fontSize="small" />
+                Create a new board
+              </SidebarItem>
             </Stack>
           </Grid>
 
@@ -233,6 +235,11 @@ function Boards() {
           </Grid>
         </Grid>
       </Box>
+      <CreateBoardModal
+        open={openCreateBoard}
+        onClose={() => setOpenCreateBoard(false)}
+        onCreated={afterCreateBoard}
+      />
     </Container>
   )
 }

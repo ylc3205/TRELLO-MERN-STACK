@@ -73,11 +73,49 @@ const update = async(req, res, next) => {
   } catch (error) { next(error) }
 }
 
+const getRecentBoards = async (req, res, next) => {
+  try {
+    const userId = req.jwtDecoded._id
+    const boards = await userService.getRecentBoards(userId)
+    res.status(StatusCodes.OK).json(boards)
+  } catch (error) { next(error) }
+}
+
+const getStarredBoards = async (req, res, next) => {
+  try {
+    const userId = req.jwtDecoded._id
+    const boards = await userService.getStarredBoards(userId)
+    res.status(StatusCodes.OK).json(boards)
+  } catch (error) { next(error) }
+}
+
+const toggleStarBoard = async (req, res, next) => {
+  try {
+    const userId = req.jwtDecoded._id
+    const { boardId } = req.params
+    const result = await userService.toggleStarBoard(userId, boardId)
+    res.status(StatusCodes.OK).json(result)
+  } catch (error) { next(error) }
+}
+
+const trackRecentBoard = async (req, res, next) => {
+  try {
+    const userId = req.jwtDecoded._id
+    const { boardId } = req.params
+    await userService.trackRecentBoard(userId, boardId)
+    res.status(StatusCodes.OK).json({ tracked: true })
+  } catch (error) { next(error) }
+}
+
 export const userController = {
   createNew,
   verifyAccount,
   login,
   logout,
   refreshToken,
-  update
+  update,
+  getRecentBoards,
+  getStarredBoards,
+  toggleStarBoard,
+  trackRecentBoard
 }

@@ -38,6 +38,11 @@ import ToggleFocusInput from '~/components/Form/ToggleFocusInput'
 import VisuallyHiddenInput from '~/components/Form/VisuallyHiddenInput'
 import { singleFileValidator, attachmentFilesValidator } from '~/utils/validators'
 import { toast } from 'react-toastify'
+import moment from 'moment'
+import Popover from '@mui/material/Popover'
+import TextField from '@mui/material/TextField'
+import Button from '@mui/material/Button'
+import Checkbox from '@mui/material/Checkbox'
 import CardUserGroup from './CardUserGroup'
 import CardDescriptionMdEditor from './CardDescriptionMdEditor'
 import CardActivitySection from './CardActivitySection'
@@ -58,7 +63,7 @@ import PersonRemoveIcon from '@mui/icons-material/PersonRemove'
 import { useConfirm } from 'material-ui-confirm'
 import { cloneDeep, isEmpty } from 'lodash'
 import { generatePlaceholderCard } from '~/utils/formatters'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 const SidebarItem = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -86,6 +91,65 @@ function ActiveCard() {
   const isShowModalActiveCard = useSelector(selectIsShowModalActiveCard)
   const currentUser = useSelector(selectCurrentUser)
   const board = useSelector(selectCurrentActiveBoard)
+
+  const [dateAnchorEl, setDateAnchorEl] = useState(null)
+  const [selectedDate, setSelectedDate] = useState('')
+
+  useEffect(() => {
+    if (activeCard?.deadline) {
+      setSelectedDate(moment(activeCard.deadline).format('YYYY-MM-DDTHH:mm'))
+    } else {
+      setSelectedDate('')
+    }
+  }, [activeCard?.deadline])
+
+  const handleOpenDatePicker = (event) => setDateAnchorEl(event.currentTarget)
+  const handleCloseDatePicker = () => setDateAnchorEl(null)
+
+
+  const getDeadlineBadge = () => {
+    if (!activeCard?.deadline) return null
+    if (activeCard.isDone) {
+      return (
+        <Chip
+          label="Đã xong"
+          color="success"
+          size="small"
+          sx={{ height: '20px', fontSize: '10px', fontWeight: 600 }}
+        />
+      )
+    }
+    const diffMs = new Date(activeCard.deadline) - new Date()
+    if (diffMs < 0) {
+      return (
+        <Chip
+          label="Quá hạn"
+          color="error"
+          size="small"
+          sx={{ height: '20px', fontSize: '10px', fontWeight: 600 }}
+        />
+      )
+    }
+    // Ngưỡng 5 phút: 5 * 60 * 1000
+    if (diffMs <= 5 * 60 * 1000) {
+      return (
+        <Chip
+          label="Sắp tới hạn"
+          color="warning"
+          size="small"
+          sx={{ height: '20px', fontSize: '10px', fontWeight: 600 }}
+        />
+      )
+    }
+    return (
+      <Chip
+        label="Đang làm"
+        color="info"
+        size="small"
+        sx={{ height: '20px', fontSize: '10px', fontWeight: 600 }}
+      />
+    )
+  }
 
   const cardOwner = board?.FE_allUsers?.find(u => activeCard?.ownerIds?.includes(u._id))
 
@@ -135,6 +199,21 @@ function ActiveCard() {
     dispatch(updateCardInBoard(updatedCard))
 
     return updatedCard
+  }
+
+  const handleSaveDeadline = async () => {
+    if (!selectedDate) return
+    const timestamp = new Date(selectedDate).getTime()
+    await callApiUpdateCard({ deadline: timestamp })
+    toast.success('Hạn deadline đã được lưu!', { position: 'bottom-right' })
+    handleCloseDatePicker()
+  }
+
+  const handleRemoveDeadline = async () => {
+    await callApiUpdateCard({ deadline: null })
+    toast.success('Hạn deadline đã được gỡ bỏ!', { position: 'bottom-right' })
+    setSelectedDate('')
+    handleCloseDatePicker()
   }
 
   const onUpdateCardTitle = (newTitle) => {
@@ -259,6 +338,7 @@ function ActiveCard() {
 
 
   return (
+    <>
     <Modal
       disableScrollLock
       open={isShowModalActiveCard}
@@ -332,6 +412,35 @@ function ActiveCard() {
                   onUpdateCardMembers={onUpdateCardMembers}
                 />
               </Box>
+
+              {/* Deadline Display Block */}
+              {activeCard?.deadline && (
+                <Box>
+                  <Typography sx={{ fontWeight: '600', color: 'primary.main', mb: 1 }}>Hạn chót</Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Checkbox
+                      checked={!!activeCard.isDone}
+                      onChange={onToggleCardDone}
+                      size="small"
+                      sx={{ p: 0 }}
+                    />
+                    <Box
+                      sx={{
+                        px: 1, py: 0.25, borderRadius: '4px', fontSize: '12px', fontWeight: 500,
+                        bgcolor: (theme) => theme.palette.mode === 'dark' ? '#2c3e50' : '#f4f5f7',
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        cursor: 'pointer',
+                        '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? '#3c5a7a' : '#e0e0e0' }
+                      }}
+                      onClick={handleOpenDatePicker}
+                    >
+                      {moment(activeCard.deadline).format('DD/MM/YYYY HH:mm')}
+                    </Box>
+                    {getDeadlineBadge()}
+                  </Box>
+                </Box>
+              )}
             </Box>
 
             {/* Task Progress Section — hiển thị tiến trình thực tế của column */}
@@ -566,7 +675,7 @@ function ActiveCard() {
               </SidebarItem>
               <SidebarItem><LocalOfferOutlinedIcon fontSize="small" />Labels</SidebarItem>
               <SidebarItem><TaskAltOutlinedIcon fontSize="small" />Checklist</SidebarItem>
-              <SidebarItem><WatchLaterOutlinedIcon fontSize="small" />Dates</SidebarItem>
+              <SidebarItem onClick={handleOpenDatePicker}><WatchLaterOutlinedIcon fontSize="small" />Dates</SidebarItem>
               {(activeCard?.ownerIds?.includes(currentUser._id) || board?.ownerIds?.includes(currentUser._id)) &&
                 <SidebarItem onClick={handleDeleteCard}>
                   <DeleteIcon fontSize="small" />
@@ -598,6 +707,38 @@ function ActiveCard() {
         </Grid>
       </Box>
     </Modal>
+
+    {/* Popover chọn ngày giờ Deadline */}
+    <Popover
+      open={Boolean(dateAnchorEl)}
+      anchorEl={dateAnchorEl}
+      onClose={handleCloseDatePicker}
+      anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+    >
+      <Box sx={{ p: 2, width: 280 }}>
+        <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 700 }}>Đặt hạn chót (Deadline)</Typography>
+        <TextField
+          type="datetime-local"
+          size="small"
+          fullWidth
+          value={selectedDate}
+          onChange={(e) => setSelectedDate(e.target.value)}
+          inputProps={{ min: moment().format('YYYY-MM-DDTHH:mm') }}
+          sx={{ mb: 2 }}
+        />
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Button variant="contained" size="small" onClick={handleSaveDeadline} fullWidth>
+            Lưu
+          </Button>
+          {activeCard?.deadline && (
+            <Button variant="outlined" color="error" size="small" onClick={handleRemoveDeadline} fullWidth>
+              Gỡ bỏ
+            </Button>
+          )}
+        </Box>
+      </Box>
+    </Popover>
+    </>
   )
 }
 

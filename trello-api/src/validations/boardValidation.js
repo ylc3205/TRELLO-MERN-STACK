@@ -14,7 +14,10 @@ const createNew = async(req, res, next) => {
       'string.trim': 'Title cannot have leading or trailing whitespace'
     }),
     description: Joi.string().required().min(3).max(256).trim().strict(),
-    type: Joi.string().valid(BOARD_TYPES.PRIVATE, BOARD_TYPES.PUBLIC).required()
+    type: Joi.string().valid(BOARD_TYPES.PRIVATE, BOARD_TYPES.PUBLIC).required(),
+    // Các field mới cho Workspace và Cover
+    workspaceId: Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE).allow(null, '').default(null),
+    cover: Joi.string().allow(null, '').default(null)
   })
 
   try {

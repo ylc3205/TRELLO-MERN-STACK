@@ -18,6 +18,9 @@ const CARD_COLLECTION_SCHEMA = Joi.object({
   // Trạng thái hoàn thành của card — do user tự đánh dấu
   // true = đã xong, false = chưa xong
   isDone: Joi.boolean().default(false),
+
+  deadline: Joi.date().timestamp('javascript').allow(null).default(null),
+  isDeadlineSent: Joi.boolean().default(false),
   ownerIds: Joi.array().items(
     Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)
   ).default([]),
@@ -90,6 +93,11 @@ const update = async (cardId, updateData) => {
 
     // Đối với những dữ liệu liên quan ObjectId, biến đổi ở đây
     if (updateData.columnId) updateData.columnId = new ObjectId(updateData.columnId)
+
+    // Nếu cập nhật deadline, tự động reset trạng thái gửi thông báo về false
+    if (Object.keys(updateData).includes('deadline')) {
+      updateData.isDeadlineSent = false
+    }
 
     const result = await GET_DB().collection(CARD_COLLECTION_NAME).findOneAndUpdate(
       { _id: new ObjectId(cardId) },

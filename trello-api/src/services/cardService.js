@@ -4,6 +4,7 @@ import { CloudinaryProvider } from '~/providers/CloudinaryProvider'
 import ApiError from '~/utils/ApiError'
 import { StatusCodes } from 'http-status-codes'
 import cloudinary from 'cloudinary'
+import { notificationModel } from '~/models/notificationModel'
 
 const createNew = async (userId, reqBody) => {
   try {
@@ -91,6 +92,46 @@ const update = async (cardId, reqBody, cardCoverFile, attachmentFiles, userInfo)
 
       updatedCard = await cardModel.unshiftNewComment(cardId, commentData)
 
+      // --- TRIGGER REALTIME NOTIFICATION ---
+      try {
+        const potentialRecipients = new Set([
+          ...(updatedCard.ownerIds || []).map(id => id.toString()),
+          ...(updatedCard.memberIds || []).map(id => id.toString()),
+          ...(updatedCard.comments || []).map(c => c.userId.toString())
+        ])
+        
+        potentialRecipients.delete(userInfo._id.toString())
+        const recipientIds = Array.from(potentialRecipients)
+        
+        for (const recipientId of recipientIds) {
+          const notificationPayload = {
+            senderId: userInfo._id.toString(),
+            recipientId: recipientId,
+            type: 'CARD_COMMENTED',
+            boardId: updatedCard.boardId.toString(),
+            cardId: updatedCard._id.toString(),
+            title: 'Bình luận mới',
+            message: `${userInfo.displayName} đã bình luận vào thẻ "${updatedCard.title}"`
+          }
+          
+          const createdNotification = await notificationModel.createNew(notificationPayload)
+          const savedNotification = await notificationModel.findOneById(createdNotification.insertedId)
+          
+          if (global.io) {
+            global.io.to(`user_${recipientId}`).emit('BE_NEW_NOTIFICATION', {
+              ...savedNotification,
+              sender: {
+                _id: userInfo._id,
+                email: userInfo.email,
+                displayName: userInfo.displayName,
+                avatar: userInfo.avatar
+              }
+            })
+          }
+        }
+      } catch (err) {
+        console.error('Failed to trigger comment notification:', err)
+      }
     }
 
     else if (updateData.commentToUpdate) {
@@ -110,8 +151,42 @@ const update = async (cardId, reqBody, cardCoverFile, attachmentFiles, userInfo)
 
     else if (updateData.incomingMemberInfo) {
       // TH ADD hoặc REMOVE member ra khỏi card
-      updatedCard =await cardModel.updateMembers(cardId, updateData.incomingMemberInfo)
+      updatedCard = await cardModel.updateMembers(cardId, updateData.incomingMemberInfo)
 
+      // --- TRIGGER REALTIME NOTIFICATION (Chỉ khi ADD member) ---
+      if (updateData.incomingMemberInfo.action === 'ADD') {
+        try {
+          const targetUserId = updateData.incomingMemberInfo.userId
+          if (targetUserId.toString() !== userInfo._id.toString()) {
+            const notificationPayload = {
+              senderId: userInfo._id.toString(),
+              recipientId: targetUserId.toString(),
+              type: 'CARD_MEMBER_ADDED',
+              boardId: updatedCard.boardId.toString(),
+              cardId: updatedCard._id.toString(),
+              title: 'Thêm vào thẻ',
+              message: `${userInfo.displayName} đã thêm bạn vào thẻ "${updatedCard.title}"`
+            }
+
+            const createdNotification = await notificationModel.createNew(notificationPayload)
+            const savedNotification = await notificationModel.findOneById(createdNotification.insertedId)
+
+            if (global.io) {
+              global.io.to(`user_${targetUserId}`).emit('BE_NEW_NOTIFICATION', {
+                ...savedNotification,
+                sender: {
+                  _id: userInfo._id,
+                  email: userInfo.email,
+                  displayName: userInfo.displayName,
+                  avatar: userInfo.avatar
+                }
+              })
+            }
+          }
+        } catch (err) {
+          console.error('Failed to trigger member added notification:', err)
+        }
+      }
     }
 
     else {

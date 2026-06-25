@@ -8,6 +8,8 @@ import { invitationRoute } from './invitationRoute'
 import { chatbotRoute } from './chatbotRoute'
 import { conversationRoute } from './conversationRoute'
 import { messageRoute } from './messageRoute'
+import { workspaceRoute } from './workspaceRoute'
+import { notificationRoute } from './notificationRoute'
 
 const Router = express.Router()
 
@@ -36,5 +38,11 @@ Router.use('/chatbot', chatbotRoute)
 // Chat API
 Router.use('/conversations', conversationRoute)
 Router.use('/messages', messageRoute)
+
+// Workspace API
+Router.use('/workspaces', workspaceRoute)
+
+// Notification API
+Router.use('/notifications', notificationRoute)
 
 export const APIs_V1 = Router

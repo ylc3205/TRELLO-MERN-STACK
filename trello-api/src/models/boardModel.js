@@ -16,6 +16,12 @@ const BOARD_COLLECTION_SCHEMA = Joi.object({
   description: Joi.string().required().min(3).max(256).trim().strict(),
   type: Joi.string().valid(BOARD_TYPES.PRIVATE, BOARD_TYPES.PUBLIC).required(),
 
+  // workspaceId: board thuộc workspace nào (null = board độc lập)
+  workspaceId: Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE).allow(null).default(null),
+
+  // Màu nền / ảnh nền của board
+  cover: Joi.string().allow(null, '').default(null),
+
   // Lưu ý các item trong mảng columnOrderIds là ObjectId nên cần thêm pattern cho chuẩn nhé, (lúc quay video số 57 mình quên nhưng sang đầu video số 58 sẽ có nhắc lại về cái này.)
   columnOrderIds: Joi.array().items(
     Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)
@@ -49,6 +55,10 @@ const createNew = async (userId, data) => {
     const newBoardToAdd = {
       ...validData,
       ownerIds: [new ObjectId(userId)]
+    }
+    // Chuyển workspaceId thành ObjectId để lưu trữ chính xác trong DB
+    if (newBoardToAdd.workspaceId) {
+      newBoardToAdd.workspaceId = new ObjectId(newBoardToAdd.workspaceId)
     }
     const createdBoard = await GET_DB().collection(BOARD_COLLECTION_NAME).insertOne(newBoardToAdd)
     return createdBoard

@@ -125,3 +125,59 @@ export const createNewMessageAPI = async (data) => {
   const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/messages`, data)
   return response.data
 }
+
+// ========================= WORKSPACE APIs =========================
+export const fetchWorkspacesAPI = async () => {
+  const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/workspaces`)
+  return response.data
+}
+
+export const createWorkspaceAPI = async (data) => {
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/workspaces`, data)
+  toast.success('Workspace created successfully!')
+  return response.data
+}
+
+export const getWorkspaceDetailsAPI = async (workspaceId) => {
+  const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/workspaces/${workspaceId}`)
+  return response.data
+}
+
+export const updateWorkspaceAPI = async (workspaceId, data) => {
+  const response = await authorizedAxiosInstance.put(`${API_ROOT}/v1/workspaces/${workspaceId}`, data)
+  return response.data
+}
+
+export const deleteWorkspaceAPI = async (workspaceId) => {
+  const response = await authorizedAxiosInstance.delete(`${API_ROOT}/v1/workspaces/${workspaceId}`)
+  return response.data
+}
+
+// Tạo board từ template (kèm columns có sẵn)
+export const createBoardFromTemplateAPI = async (data) => {
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/workspaces/board-from-template`, data)
+  toast.success('Board created from template successfully!')
+  return response.data
+}
+
+// ========================= RECENT BOARDS APIs =========================
+export const fetchRecentBoardsAPI = async () => {
+  const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/users/recent-boards`)
+  return response.data
+}
+
+export const trackRecentBoardAPI = async (boardId) => {
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/users/recent-boards/${boardId}`)
+  return response.data
+}
+
+// ========================= STARRED BOARDS APIs =========================
+export const fetchStarredBoardsAPI = async () => {
+  const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/users/starred-boards`)
+  return response.data
+}
+
+export const toggleStarBoardAPI = async (boardId) => {
+  const response = await authorizedAxiosInstance.patch(`${API_ROOT}/v1/users/starred-boards/${boardId}/toggle`)
+  return response.data
+}

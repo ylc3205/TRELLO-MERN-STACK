@@ -2,18 +2,21 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import authorizedAxiosInstance from '~/utils/authorizeAxios'
 import { API_ROOT } from '~/utils/constants'
 
-// Khởi tạo giá trị của một Slice trong redux
+// ============= STATE BAN ĐẦU =============
 const initialState = {
-  currentNotifications: null
+  // Lời mời tham gia Board (đã có sẵn)
+  currentNotifications: null,
+
+  // Thông báo hoạt động thẻ (mới): comment, add member...
+  cardNotifications: [],
+  unreadCardCount: 0
 }
 
-// Các hành động gọi api (bất đồng bộ) và cập nhật dữ liệu vào Redux,
-// dùng Middleware createAsyncThunk đi kèm với extraReducers
+// ============= ASYNC THUNKS - INVITATIONS (GIỮ NGUYÊN) =============
 export const fetchInvitationsAPI = createAsyncThunk(
   'notifications/fetchInvitationsAPI',
   async () => {
     const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/invitations`)
-    // Lưu ý: axios sẽ trả kết quả về qua property của nó là data
     return response.data
   }
 )
@@ -26,68 +29,111 @@ export const updateBoardInvitationAPI = createAsyncThunk(
   }
 )
 
-// Khởi tạo một slice trong kho lưu trữ - redux store
+// ============= ASYNC THUNKS - CARD NOTIFICATIONS (MỚI) =============
+export const fetchCardNotificationsAPI = createAsyncThunk(
+  'notifications/fetchCardNotificationsAPI',
+  async () => {
+    const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/notifications`)
+    return response.data
+  }
+)
+
+export const markNotificationAsReadAPI = createAsyncThunk(
+  'notifications/markNotificationAsReadAPI',
+  async (notificationId) => {
+    const response = await authorizedAxiosInstance.put(`${API_ROOT}/v1/notifications/${notificationId}/read`)
+    return response.data
+  }
+)
+
+export const markAllNotificationsAsReadAPI = createAsyncThunk(
+  'notifications/markAllNotificationsAsReadAPI',
+  async () => {
+    const response = await authorizedAxiosInstance.put(`${API_ROOT}/v1/notifications/read-all`)
+    return response.data
+  }
+)
+
+// ============= SLICE =============
 export const notificationsSlice = createSlice({
   name: 'notifications',
   initialState,
-  // Reducers: Nơi xử lý dữ liệu đồng bộ
   reducers: {
+    // --- Invitations (GIỮ NGUYÊN) ---
     clearCurrentNotifications: (state) => {
       state.currentNotifications = null
     },
     updateCurrentNotifications: (state, action) => {
       state.currentNotifications = action.payload
     },
-    // Thêm mới 1 bản ghi notification vào đầu mảng CurrentNotifications
+    // Thêm 1 invitation mới vào đầu mảng (từ socket)
     addNotification: (state, action) => {
       const incomingInvitation = action.payload
-      // unshift là thêm phần tử vào đầu mảng, ngược lại với push
       state.currentNotifications.unshift(incomingInvitation)
+    },
+
+    // --- Card Notifications (MỚI) ---
+    // Thêm 1 thông báo thẻ mới từ socket, tránh trùng lặp
+    addCardNotification: (state, action) => {
+      const incoming = action.payload
+      const isDuplicate = state.cardNotifications.some(n => n._id?.toString() === incoming._id?.toString())
+      if (!isDuplicate) {
+        state.cardNotifications.unshift(incoming)
+        if (!incoming.isRead) {
+          state.unreadCardCount += 1
+        }
+      }
     }
   },
-  // ExtraReducers: Xử lý dữ liệu bất đồng bộ
+
   extraReducers: (builder) => {
+    // --- Invitations (GIỮ NGUYÊN) ---
     builder.addCase(fetchInvitationsAPI.fulfilled, (state, action) => {
       let incomingInvitations = action.payload
-      // Đoạn này đảo ngược lại mảng invitations nhận được, đơn giản là để hiển thị cái mới nhất lên đầu
       state.currentNotifications = Array.isArray(incomingInvitations) ? incomingInvitations.reverse() : []
     })
-    // builder.addCase(updateBoardInvitationAPI.fulfilled, (state, action) => {
-    //   const incomingInvitation = action.payload
-    //   // Cập nhật lại dữ liệu boardInvitation (bên trong nó sẽ có Status mới sau khi update)
-    //   const getInvitation = state.currentNotifications.find(i => i._id === incomingInvitation._id)
-    //   getInvitation.boardInvitation = incomingInvitation.boardInvitation
-    // })
     builder.addCase(updateBoardInvitationAPI.fulfilled, (state, action) => {
       const incomingInvitation = action.payload
-
-      // 🔥 chặn null
       if (!incomingInvitation) return
-
       const getInvitation = state.currentNotifications.find(i => i._id === incomingInvitation._id)
-
       if (getInvitation) {
         getInvitation.boardInvitation = incomingInvitation.boardInvitation
       }
     })
+
+    // --- Card Notifications (MỚI) ---
+    builder.addCase(fetchCardNotificationsAPI.fulfilled, (state, action) => {
+      const data = action.payload || []
+      state.cardNotifications = data
+      state.unreadCardCount = data.filter(n => !n.isRead).length
+    })
+    builder.addCase(markNotificationAsReadAPI.fulfilled, (state, action) => {
+      const updated = action.payload
+      if (!updated) return
+      const target = state.cardNotifications.find(n => n._id?.toString() === updated._id?.toString())
+      if (target && !target.isRead) {
+        target.isRead = true
+        state.unreadCardCount = Math.max(0, state.unreadCardCount - 1)
+      }
+    })
+    builder.addCase(markAllNotificationsAsReadAPI.fulfilled, (state) => {
+      state.cardNotifications.forEach(n => { n.isRead = true })
+      state.unreadCardCount = 0
+    })
   }
 })
 
-// Action creators are generated for each case reducer function
-// Actions: Là nơi dành cho các components bên dưới gọi bằng dispatch() tới nó để cập nhật
-// lại dữ liệu thông qua reducer (chạy đồng bộ)
+// ============= ACTIONS =============
 export const {
   clearCurrentNotifications,
   updateCurrentNotifications,
-  addNotification
+  addNotification,
+  addCardNotification
 } = notificationsSlice.actions
 
-// Selectors: Là nơi dành cho các components bên dưới gọi bằng hook useSelector()
-// để lấy dữ liệu từ trong kho redux store ra sử dụng
-export const selectCurrentNotifications = state => {
-  return state.notifications.currentNotifications
-}
+// ============= SELECTORS =============
+export const selectCurrentNotifications = state => state.notifications.currentNotifications
+export const selectCardNotifications = state => state.notifications.cardNotifications
+export const selectUnreadCardCount = state => state.notifications.unreadCardCount
 
-// Cái file này tên là notificationsSlice NHƯNG chúng ta sẽ export một thứ tên là Reducer, mọi người lưu ý :D
-// export default notificationsSlice.reducer
-export const notificationsReducer = notificationsSlice.reducer
+export const notificationsReducer = notificationsSlice.reducer

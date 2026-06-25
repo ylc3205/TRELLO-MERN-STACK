@@ -23,7 +23,7 @@ function ChatBox({ onClose }) {
       }
     }
     return [
-      { role: 'assistant', content: 'Tôi có thể giúp gì cho bạn?' }
+      { role: 'assistant', content: 'How can I help you?' }
     ]
   })
   const [inputValue, setInputValue] = useState('')
@@ -92,7 +92,7 @@ function ChatBox({ onClose }) {
       console.error('Lỗi gọi API ChatBot:', error)
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: 'Hệ thống đang quá tải, hãy đợi vài giây rồi thử lại nhé!'
+        content: 'The system is overloaded, please wait a few seconds and try again!'
       }])
     } finally {
       setIsLoading(false)
@@ -198,7 +198,7 @@ function ChatBox({ onClose }) {
       </Box>
 
       <Box sx={{ p: 1, display: 'flex', alignItems: 'center', borderTop: '1px solid', borderColor: 'divider' }}>
-        <TextField fullWidth size="small" placeholder="Hỏi AI..." variant="outlined" value={inputValue} onChange={(e) => setInputValue(e.target.value)} onKeyDown={handleKeyDown} disabled={isLoading} multiline maxRows={3} />
+        <TextField fullWidth size="small" placeholder="Ask AI..." variant="outlined" value={inputValue} onChange={(e) => setInputValue(e.target.value)} onKeyDown={handleKeyDown} disabled={isLoading} multiline maxRows={3} />
         <IconButton color="primary" onClick={handleSendMessage} disabled={!inputValue.trim() || isLoading} sx={{ ml: 1 }}><SendIcon /></IconButton>
       </Box>
     </Paper>
