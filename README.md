@@ -2,8 +2,6 @@
 
 [TRELLO DEMO 2026] (https://youtu.be/HeyEZ-V2_iM) 
 
-*Link dự phòng:* [Xem Video Demo trên Google Drive] (https://drive.google.com/file/d/1AepFmBSN2oXv4nc-Uu3q1Qj93W7DqWKW/view?usp=sharing)
-
 A professional, feature-rich Trello-inspired project management platform built on the **MERN Stack** (MongoDB, Express.js, React.js, Node.js). This platform leverages modern real-time WebSockets, automated background notifications, Gemini AI integration, and robust drag-and-drop mechanics to deliver an industry-standard collaborative task management experience.
 
 ---
