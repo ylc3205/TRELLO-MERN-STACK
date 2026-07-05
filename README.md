@@ -1,6 +1,6 @@
 # 🚀 Advanced Trello MERN Stack
 
-[![Demo Trello Workspace] (https://youtu.be/kWtk0fz96QQ)
+[![Demo Trello Workspace] (https://youtu.be/HeyEZ-V2_iM)
 
 A professional, feature-rich Trello-inspired project management platform built on the **MERN Stack** (MongoDB, Express.js, React.js, Node.js). This platform leverages modern real-time WebSockets, automated background notifications, Gemini AI integration, and robust drag-and-drop mechanics to deliver an industry-standard collaborative task management experience.
 
