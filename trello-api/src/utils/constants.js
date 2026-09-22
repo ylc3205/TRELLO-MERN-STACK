@@ -1,8 +1,9 @@
 import { env } from '~/config/environment'
 
 export const WHITELIST_DOMAINS = [
-  'http://localhost:5173',
-  'https://trello-mern-stack-three.vercel.app'
+  'http://localhost:5173',                         // Dành cho khi chạy code ở máy tính (local dev)
+  'https://trello-web-olive-rho.vercel.app',       // Link dự án Vercel 1
+  'https://trello-mern-stack-three.vercel.app'     // Link dự án Vercel 2
 ]
 
 export const BOARD_TYPES = {

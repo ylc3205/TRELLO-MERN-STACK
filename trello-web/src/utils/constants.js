@@ -2,7 +2,7 @@
 let apiRoot = import.meta.env?.VITE_API_ROOT || 'http://localhost:8017'
 
 if (process.env.BUILD_MODE === 'production' && !import.meta.env?.VITE_API_ROOT) {
-  apiRoot = 'https://trello-api-ttcs.onrender.com'
+  apiRoot = 'https://trello-mern.onrender.com'
 }
 
 export const API_ROOT = apiRoot
