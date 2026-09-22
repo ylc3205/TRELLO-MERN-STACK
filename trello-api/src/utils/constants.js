@@ -1,10 +1,8 @@
 import { env } from '~/config/environment'
 
-// Những domain được phép truy câpj tới tài nguyên server
 export const WHITELIST_DOMAINS = [
-  'http://localhost:5173'
-  // 'https://trello-web-ttcs.vercel.app'
-
+  'http://localhost:5173',
+  'https://trello-web-olive-rho.vercel.app' // Thay/thêm domain Vercel của bạn vào đây
 ]
 
 export const BOARD_TYPES = {
