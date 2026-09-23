@@ -1,12 +1,16 @@
+import { useState } from 'react'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import TextField from '@mui/material/TextField'
 import InputAdornment from '@mui/material/InputAdornment'
+import IconButton from '@mui/material/IconButton'
 import Button from '@mui/material/Button'
 import PasswordIcon from '@mui/icons-material/Password'
 import LockResetIcon from '@mui/icons-material/LockReset'
 import LockIcon from '@mui/icons-material/Lock'
 import LogoutIcon from '@mui/icons-material/Logout'
+import Visibility from '@mui/icons-material/Visibility'
+import VisibilityOff from '@mui/icons-material/VisibilityOff'
 
 import { FIELD_REQUIRED_MESSAGE, PASSWORD_RULE, PASSWORD_RULE_MESSAGE } from '~/utils/validators'
 import FieldErrorAlert from '~/components/Form/FieldErrorAlert'
@@ -18,6 +22,9 @@ import { logoutUserAPI, updateUserAPI } from '~/redux/user/userSlice'
 
 function SecurityTab() {
   const dispatch = useDispatch()
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const { register, handleSubmit, watch, formState: { errors } } = useForm()
 
   // Ôn lại: https://www.npmjs.com/package/material-ui-confirm
@@ -73,12 +80,24 @@ function SecurityTab() {
               <TextField
                 fullWidth
                 label="Current Password"
-                type="password"
+                type={showCurrentPassword ? 'text' : 'password'}
                 variant="outlined"
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
                       <PasswordIcon fontSize="small" />
+                    </InputAdornment>
+                  ),
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle current password visibility"
+                        onClick={() => setShowCurrentPassword((show) => !show)}
+                        onMouseDown={(e) => e.preventDefault()}
+                        edge="end"
+                      >
+                        {showCurrentPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                      </IconButton>
                     </InputAdornment>
                   )
                 }}
@@ -98,12 +117,24 @@ function SecurityTab() {
               <TextField
                 fullWidth
                 label="New Password"
-                type="password"
+                type={showNewPassword ? 'text' : 'password'}
                 variant="outlined"
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
                       <LockIcon fontSize="small" />
+                    </InputAdornment>
+                  ),
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle new password visibility"
+                        onClick={() => setShowNewPassword((show) => !show)}
+                        onMouseDown={(e) => e.preventDefault()}
+                        edge="end"
+                      >
+                        {showNewPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                      </IconButton>
                     </InputAdornment>
                   )
                 }}
@@ -123,12 +154,24 @@ function SecurityTab() {
               <TextField
                 fullWidth
                 label="New Password Confirmation"
-                type="password"
+                type={showConfirmPassword ? 'text' : 'password'}
                 variant="outlined"
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
                       <LockResetIcon fontSize="small" />
+                    </InputAdornment>
+                  ),
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle confirm password visibility"
+                        onClick={() => setShowConfirmPassword((show) => !show)}
+                        onMouseDown={(e) => e.preventDefault()}
+                        edge="end"
+                      >
+                        {showConfirmPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                      </IconButton>
                     </InputAdornment>
                   )
                 }}

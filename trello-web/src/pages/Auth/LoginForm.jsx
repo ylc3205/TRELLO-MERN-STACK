@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -10,6 +11,10 @@ import CardActions from '@mui/material/CardActions'
 import TextField from '@mui/material/TextField'
 import Zoom from '@mui/material/Zoom'
 import Alert from '@mui/material/Alert'
+import InputAdornment from '@mui/material/InputAdornment'
+import IconButton from '@mui/material/IconButton'
+import Visibility from '@mui/icons-material/Visibility'
+import VisibilityOff from '@mui/icons-material/VisibilityOff'
 import { useForm } from 'react-hook-form'
 import {
   EMAIL_RULE,
@@ -27,6 +32,7 @@ import { toast } from 'react-toastify'
 function LoginForm() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
+  const [showPassword, setShowPassword] = useState(false)
 
   const { register, handleSubmit, formState:{ errors } } = useForm()
   let [searchParams] = useSearchParams()
@@ -101,9 +107,23 @@ function LoginForm() {
               <TextField
                 fullWidth
                 label="Enter Password..."
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 variant="outlined"
                 error={!!errors['password']}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle password visibility"
+                        onClick={() => setShowPassword((show) => !show)}
+                        onMouseDown={(e) => e.preventDefault()}
+                        edge="end"
+                      >
+                        {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                }}
                 {...register('password', {
                   required: FIELD_REQUIRED_MESSAGE,
                   pattern: {
